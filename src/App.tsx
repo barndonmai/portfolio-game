@@ -36,53 +36,28 @@ export default function App() {
   }, [activeSection]);
 
   return (
-    <main className="min-h-screen px-4 py-6 text-pub-cream sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <section className="rounded-3xl border border-pub-brass/30 bg-[#1b1310]/90 p-6 shadow-panel">
-          <p className="font-display text-xs uppercase tracking-[0.35em] text-pub-brass">
-            Cozy Pixel Pub Portfolio
-          </p>
-          <h1 className="mt-3 font-display text-3xl text-white sm:text-4xl">
+    <main className="fixed inset-0 overflow-hidden text-pub-cream">
+      <GameCanvas />
+      <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(7,4,3,0.45)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 z-20">
+        <section className="pointer-events-auto absolute left-4 top-4 max-w-xs rounded-2xl border border-pub-brass/30 bg-[#1b1310]/78 px-4 py-3 shadow-panel backdrop-blur-sm sm:left-6 sm:top-6">
+          <p className="font-display text-[11px] uppercase tracking-[0.35em] text-pub-brass">
             The Lantern & Link
-          </h1>
-          <p className="mt-3 max-w-3xl text-sm leading-7 text-pub-cream/85 sm:text-base">
-            Explore a single-room pub built in Phaser, then open portfolio
-            panels in React. Walk with WASD or arrow keys, and press E near a
-            hotspot to open About, Experience, Projects, Resume, or Contact.
+          </p>
+          <p className="mt-2 text-sm leading-6 text-pub-cream/80">
+            Walk the room. Press E when a prompt appears.
           </p>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
-          <div className="relative">
-            <GameCanvas />
-            <InteractionPrompt
-              interactable={nearbyInteractable}
-              hidden={Boolean(activeSection)}
-            />
-          </div>
+        <aside className="pointer-events-auto absolute bottom-4 right-4 rounded-2xl border border-pub-brass/30 bg-[#1b1310]/78 px-4 py-3 text-sm text-pub-cream/80 shadow-panel backdrop-blur-sm sm:bottom-6 sm:right-6">
+          WASD / Arrows to move
+        </aside>
 
-          <aside className="rounded-3xl border border-pub-brass/30 bg-[#1b1310]/90 p-5 shadow-panel">
-            <p className="font-display text-xs uppercase tracking-[0.3em] text-pub-brass">
-              Controls
-            </p>
-            <div className="mt-4 space-y-3 text-sm leading-6 text-pub-cream/85">
-              <p>
-                Move with <span className="text-white">WASD</span> or{' '}
-                <span className="text-white">arrow keys</span>.
-              </p>
-              <p>
-                Approach highlighted pub props and press{' '}
-                <span className="text-white">E</span>.
-              </p>
-              <p>
-                React owns the content panels. Phaser only manages the room,
-                movement, collisions, and interaction events.
-              </p>
-            </div>
-          </aside>
-        </section>
+        <InteractionPrompt
+          interactable={nearbyInteractable}
+          hidden={Boolean(activeSection)}
+        />
       </div>
-
       <SectionModal
         sectionId={activeSection}
         onClose={() => setActiveSection(null)}

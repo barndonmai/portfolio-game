@@ -1,16 +1,19 @@
 import Phaser from 'phaser';
-import { ROOM_HEIGHT, ROOM_WIDTH } from './roomData';
 import { PubScene } from './scenes/PubScene';
 
 export function createPortfolioGame(parent: HTMLElement) {
+  const width = parent.clientWidth || window.innerWidth;
+  const height = parent.clientHeight || window.innerHeight;
+
   return new Phaser.Game({
     type: Phaser.AUTO,
     parent,
-    width: ROOM_WIDTH,
-    height: ROOM_HEIGHT,
+    width,
+    height,
     backgroundColor: '#1f1411',
     pixelArt: true,
     roundPixels: true,
+    autoRound: true,
     physics: {
       default: 'arcade',
       arcade: {
@@ -19,8 +22,9 @@ export function createPortfolioGame(parent: HTMLElement) {
       },
     },
     scale: {
-      mode: Phaser.Scale.FIT,
-      autoCenter: Phaser.Scale.CENTER_BOTH,
+      mode: Phaser.Scale.RESIZE,
+      width,
+      height,
     },
     scene: [PubScene],
   });

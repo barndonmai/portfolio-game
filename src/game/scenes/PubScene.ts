@@ -35,7 +35,7 @@ export class PubScene extends Phaser.Scene {
   }
 
   create() {
-    this.physics.world.setBounds(24, 24, ROOM_WIDTH - 48, ROOM_HEIGHT - 48);
+    this.physics.world.setBounds(0, 0, ROOM_WIDTH, ROOM_HEIGHT);
     this.drawRoomShell();
     this.addFurniture();
     this.addDecor();
@@ -43,8 +43,10 @@ export class PubScene extends Phaser.Scene {
     this.createPlayer();
     this.setupInput();
     this.subscribeToUiLock();
+    this.setupCamera();
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off(Phaser.Scale.Events.RESIZE, this.handleResize, this);
       this.unsubscribeUiLock?.();
       emitNearbyInteractable(null);
     });
@@ -79,9 +81,12 @@ export class PubScene extends Phaser.Scene {
     for (let x = 52; x < ROOM_WIDTH - 40; x += 36) {
       floorLines.lineBetween(x, 40, x, ROOM_HEIGHT - 40);
     }
+    for (let y = 52; y < ROOM_HEIGHT - 40; y += 36) {
+      floorLines.lineBetween(40, y, ROOM_WIDTH - 40, y);
+    }
 
     this.add
-      .rectangle(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 300, 440, 0x6a1f1f, 0.22)
+      .rectangle(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 620, 860, 0x6a1f1f, 0.22)
       .setStrokeStyle(4, 0xc58c5a, 0.5);
 
     this.add.rectangle(ROOM_WIDTH / 2, 26, ROOM_WIDTH - 24, 28, 0x2a1914);
@@ -101,27 +106,28 @@ export class PubScene extends Phaser.Scene {
   private addDecor() {
     const decor = this.add.graphics();
     decor.fillStyle(0xe0b35b, 1);
-    decor.fillCircle(110, 72, 9);
-    decor.fillCircle(240, 72, 9);
-    decor.fillCircle(676, 72, 9);
-    decor.fillCircle(836, 72, 9);
+    decor.fillCircle(136, 84, 9);
+    decor.fillCircle(286, 84, 9);
+    decor.fillCircle(1120, 84, 9);
+    decor.fillCircle(1320, 84, 9);
+    decor.fillCircle(1520, 84, 9);
 
     decor.fillStyle(0x8b5a2b, 1);
-    decor.fillRect(310, 58, 74, 44);
-    decor.fillRect(430, 58, 96, 44);
-    decor.fillRect(544, 58, 78, 44);
+    decor.fillRect(520, 62, 84, 52);
+    decor.fillRect(648, 62, 112, 52);
+    decor.fillRect(796, 62, 84, 52);
 
     decor.lineStyle(3, 0xd8b074, 1);
-    decor.strokeRect(310, 58, 74, 44);
-    decor.strokeRect(430, 58, 96, 44);
-    decor.strokeRect(544, 58, 78, 44);
+    decor.strokeRect(520, 62, 84, 52);
+    decor.strokeRect(648, 62, 112, 52);
+    decor.strokeRect(796, 62, 84, 52);
 
     decor.fillStyle(0x7a5a24, 1);
-    decor.fillRect(90, 522, 86, 16);
-    decor.fillRect(742, 520, 124, 16);
+    decor.fillRect(84, 972, 96, 18);
+    decor.fillRect(1380, 972, 136, 18);
 
     this.add
-      .text(114, 518, 'JUKE', {
+      .text(130, 968, 'JUKE', {
         color: '#f2e4c8',
         fontFamily: 'monospace',
         fontSize: '14px',
@@ -129,7 +135,7 @@ export class PubScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(804, 516, 'RESUME', {
+      .text(1448, 968, 'RESUME', {
         color: '#f2e4c8',
         fontFamily: 'monospace',
         fontSize: '12px',
@@ -213,6 +219,36 @@ export class PubScene extends Phaser.Scene {
       Phaser.Input.Keyboard.Key
     >;
     this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+  }
+
+  private setupCamera() {
+    const camera = this.cameras.main;
+    camera.setBounds(0, 0, ROOM_WIDTH, ROOM_HEIGHT);
+    camera.roundPixels = true;
+    camera.startFollow(this.player, true, 0.1, 0.1);
+    this.applyCameraViewport(this.scale.width, this.scale.height);
+    this.scale.on(Phaser.Scale.Events.RESIZE, this.handleResize, this);
+  }
+
+  private handleResize(gameSize: Phaser.Structs.Size) {
+    this.applyCameraViewport(gameSize.width, gameSize.height);
+  }
+
+  private applyCameraViewport(width: number, height: number) {
+    const camera = this.cameras.main;
+    camera.setSize(width, height);
+    camera.setZoom(this.getCameraZoom(width, height));
+  }
+
+  private getCameraZoom(width: number, height: number) {
+    const targetVisibleWidth = 1100;
+    const targetVisibleHeight = 700;
+
+    return Phaser.Math.Clamp(
+      Math.max(width / targetVisibleWidth, height / targetVisibleHeight),
+      1.35,
+      2.2,
+    );
   }
 
   private subscribeToUiLock() {
