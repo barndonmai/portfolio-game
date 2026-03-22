@@ -11,6 +11,12 @@ const eventTarget = new EventTarget();
 const nearbyInteractableEvent = 'portfolio:nearby-interactable';
 const openSectionEvent = 'portfolio:open-section';
 const uiLockEvent = 'portfolio:ui-lock';
+const gameLoadStateEvent = 'portfolio:game-load-state';
+
+export interface GameLoadState {
+  ready: boolean;
+  progress: number;
+}
 
 export function emitNearbyInteractable(
   interactable: InteractableSummary | null,
@@ -77,5 +83,25 @@ export function onUiLock(handler: (locked: boolean) => void) {
 
   return () => {
     eventTarget.removeEventListener(uiLockEvent, listener);
+  };
+}
+
+export function emitGameLoadState(loadState: GameLoadState) {
+  eventTarget.dispatchEvent(
+    new CustomEvent<GameLoadState>(gameLoadStateEvent, {
+      detail: loadState,
+    }),
+  );
+}
+
+export function onGameLoadState(handler: (loadState: GameLoadState) => void) {
+  const listener = (event: Event) => {
+    handler((event as CustomEvent<GameLoadState>).detail);
+  };
+
+  eventTarget.addEventListener(gameLoadStateEvent, listener);
+
+  return () => {
+    eventTarget.removeEventListener(gameLoadStateEvent, listener);
   };
 }

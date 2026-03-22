@@ -8,6 +8,7 @@ import rectTableSprite from '../../assets/props/pub_table_rect.png';
 import roundTableSprite from '../../assets/props/pub_table_round.png';
 import floorTilesetSprite from '../../assets/tiles/pub_floor_tileset.png';
 import {
+  emitGameLoadState,
   emitNearbyInteractable,
   emitOpenSection,
   onUiLock,
@@ -84,6 +85,18 @@ export class PubScene extends Phaser.Scene {
   }
 
   preload() {
+    const handleLoadProgress = (progress: number) => {
+      emitGameLoadState({ ready: false, progress });
+    };
+    const handleLoadComplete = () => {
+      this.load.off(Phaser.Loader.Events.PROGRESS, handleLoadProgress);
+      emitGameLoadState({ ready: false, progress: 1 });
+    };
+
+    emitGameLoadState({ ready: false, progress: 0 });
+    this.load.on(Phaser.Loader.Events.PROGRESS, handleLoadProgress);
+    this.load.once(Phaser.Loader.Events.COMPLETE, handleLoadComplete);
+
     this.load.spritesheet(FLOOR_TEXTURE_KEY, floorTilesetSprite, {
       frameWidth: 16,
       frameHeight: 16,
@@ -153,6 +166,7 @@ export class PubScene extends Phaser.Scene {
     );
     this.subscribeToUiLock();
     this.setupCamera();
+    emitGameLoadState({ ready: true, progress: 1 });
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, this.handleResize, this);
@@ -173,6 +187,7 @@ export class PubScene extends Phaser.Scene {
       );
       this.unsubscribeUiLock?.();
       emitNearbyInteractable(null);
+      emitGameLoadState({ ready: false, progress: 0 });
     });
   }
 

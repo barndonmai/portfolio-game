@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { GameCanvas } from "./components/GameCanvas";
 import { InteractionPrompt } from "./components/InteractionPrompt";
+import { LoadingScreen } from "./components/LoadingScreen";
 import { SectionModal } from "./components/SectionModal";
 import {
+  onGameLoadState,
   emitOpenSection,
   emitUiLock,
   onNearbyInteractable,
   onOpenSection,
+  type GameLoadState,
   type InteractableSummary,
 } from "./game/gameEvents";
 import type { PortfolioSectionId } from "./types/portfolio";
@@ -18,6 +21,10 @@ export default function App() {
   const [nearbyInteractable, setNearbyInteractable] =
     useState<InteractableSummary | null>(null);
   const [isTouchUi, setIsTouchUi] = useState(false);
+  const [gameLoadState, setGameLoadState] = useState<GameLoadState>({
+    ready: false,
+    progress: 0,
+  });
 
   useEffect(() => {
     const unsubscribeNearby = onNearbyInteractable((interactable) => {
@@ -27,10 +34,14 @@ export default function App() {
     const unsubscribeOpen = onOpenSection((sectionId) => {
       setActiveSection(sectionId);
     });
+    const unsubscribeLoadState = onGameLoadState((loadState) => {
+      setGameLoadState(loadState);
+    });
 
     return () => {
       unsubscribeNearby();
       unsubscribeOpen();
+      unsubscribeLoadState();
     };
   }, []);
 
@@ -75,6 +86,10 @@ export default function App() {
   return (
     <main className="fixed inset-0 overflow-hidden text-pub-cream">
       <GameCanvas />
+      <LoadingScreen
+        progress={gameLoadState.progress}
+        visible={!gameLoadState.ready}
+      />
       <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(7,4,3,0.45)_100%)]" />
       <div className="pointer-events-none absolute inset-0 z-20">
         <section className="pointer-events-auto absolute left-4 top-4 max-w-xs rounded-2xl border border-pub-brass/30 bg-[#1b1310]/78 px-4 py-3 shadow-panel backdrop-blur-sm sm:left-6 sm:top-6">

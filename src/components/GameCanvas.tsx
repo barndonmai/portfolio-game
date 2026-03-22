@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react';
 import type Phaser from 'phaser';
 import { createPortfolioGame } from '../game/createPortfolioGame';
-import { emitNearbyInteractable, emitUiLock } from '../game/gameEvents';
+import {
+  emitNearbyInteractable,
+  emitUiLock,
+} from '../game/gameEvents';
 
 export function GameCanvas() {
   const containerRef = useRef<HTMLDivElement | null>(null);
