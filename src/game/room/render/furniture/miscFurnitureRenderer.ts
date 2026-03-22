@@ -54,3 +54,15 @@ export function drawBoard(scene: Phaser.Scene, piece: FurnitureDefinition) {
     addRect(scene, 0, piece.height * 0.22, piece.width - 18, 10, 0xc85c4d),
   ]);
 }
+
+export function drawCarpet(scene: Phaser.Scene, piece: FurnitureDefinition) {
+  addContainer(scene, piece.x, piece.y, [
+    addRect(scene, 0, 6, piece.width + 8, piece.height + 4, 0x000000, 0.12),
+    addRect(scene, 0, 0, piece.width, piece.height, 0x5d231e),
+    addRect(scene, 0, 0, piece.width - 10, piece.height - 10, 0x7a2f29),
+    addRect(scene, 0, -piece.height * 0.22, piece.width - 18, 4, 0xd39c63, 0.9),
+    addRect(scene, 0, piece.height * 0.22, piece.width - 18, 4, 0xd39c63, 0.9),
+    addRect(scene, -piece.width * 0.24, 0, 3, piece.height - 14, 0xb46e5e, 0.8),
+    addRect(scene, piece.width * 0.24, 0, 3, piece.height - 14, 0xb46e5e, 0.8),
+  ]);
+}

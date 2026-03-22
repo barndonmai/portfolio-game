@@ -11,7 +11,7 @@ const nookFurniture: FurnitureDefinition[] = [
   {
     id: 'nook-booth-left',
     x: 30,
-    y: 296,
+    y: 546,
     width: BOOTH_DEPTH,
     height: BOOTH_WIDTH,
     color: 0x7f2d25,
@@ -21,7 +21,7 @@ const nookFurniture: FurnitureDefinition[] = [
   {
     id: 'nook-booth-top',
     x: 154,
-    y: 202,
+    y: 452,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,
@@ -31,7 +31,7 @@ const nookFurniture: FurnitureDefinition[] = [
   {
     id: 'nook-booth-lower-curve',
     x: 154,
-    y: 390,
+    y: 640,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,
@@ -41,7 +41,7 @@ const nookFurniture: FurnitureDefinition[] = [
   {
     id: 'nook-round-table',
     x: 154,
-    y: 296,
+    y: 546,
     width: ROUND_TABLE_SIZE,
     height: ROUND_TABLE_SIZE,
     color: 0x8f6339,
@@ -52,7 +52,7 @@ const nookFurniture: FurnitureDefinition[] = [
   {
     id: 'nook-booth-bottom-left',
     x: 30,
-    y: 618,
+    y: 868,
     width: BOOTH_DEPTH,
     height: BOOTH_WIDTH,
     color: 0x7f2d25,
@@ -62,7 +62,7 @@ const nookFurniture: FurnitureDefinition[] = [
   {
     id: 'nook-booth-bottom-top',
     x: 154,
-    y: 524,
+    y: 774,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,
@@ -72,7 +72,7 @@ const nookFurniture: FurnitureDefinition[] = [
   {
     id: 'nook-booth-bottom-lower-curve',
     x: 154,
-    y: 712,
+    y: 962,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,
@@ -82,7 +82,7 @@ const nookFurniture: FurnitureDefinition[] = [
   {
     id: 'nook-bottom-round-table',
     x: 154,
-    y: 618,
+    y: 868,
     width: ROUND_TABLE_SIZE,
     height: ROUND_TABLE_SIZE,
     color: 0x8f6339,
@@ -238,7 +238,7 @@ const barFurniture: FurnitureDefinition[] = [
 const boothIslands: FurnitureDefinition[] = [
   {
     id: 'booth-island-a-top',
-    x: 700,
+    x: 780,
     y: 274,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
@@ -248,7 +248,7 @@ const boothIslands: FurnitureDefinition[] = [
   },
   {
     id: 'booth-island-a-bottom',
-    x: 700,
+    x: 780,
     y: 430,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
@@ -258,7 +258,7 @@ const boothIslands: FurnitureDefinition[] = [
   },
   {
     id: 'booth-island-a-table',
-    x: 700,
+    x: 780,
     y: 352,
     width: ROUND_TABLE_SIZE,
     height: ROUND_TABLE_SIZE,
@@ -300,7 +300,7 @@ const boothIslands: FurnitureDefinition[] = [
   },
   {
     id: 'booth-island-c-top',
-    x: 836,
+    x: 996,
     y: 530,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
@@ -310,7 +310,7 @@ const boothIslands: FurnitureDefinition[] = [
   },
   {
     id: 'booth-island-c-bottom',
-    x: 836,
+    x: 996,
     y: 712,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
@@ -320,7 +320,7 @@ const boothIslands: FurnitureDefinition[] = [
   },
   {
     id: 'booth-island-c-table',
-    x: 836,
+    x: 996,
     y: 621,
     width: ROUND_TABLE_SIZE,
     height: ROUND_TABLE_SIZE,
@@ -354,7 +354,7 @@ const freestandingTables: FurnitureDefinition[] = [
   },
   {
     id: 'rect-table-lower-right-1',
-    x: 1084,
+    x: 1164,
     y: 642,
     width: RECT_TABLE_WIDTH,
     height: RECT_TABLE_HEIGHT,
@@ -365,6 +365,26 @@ const freestandingTables: FurnitureDefinition[] = [
 ];
 
 const propFurniture: FurnitureDefinition[] = [
+  {
+    id: 'tv-bench',
+    x: 153,
+    y: 294,
+    width: BOOTH_WIDTH,
+    height: BOOTH_DEPTH,
+    color: 0x7f2d25,
+    stroke: 0xd39c63,
+    collides: true,
+  },
+  {
+    id: 'tv-carpet',
+    x: 153,
+    y: 232,
+    width: 128,
+    height: 52,
+    color: 0x6a2b25,
+    stroke: 0xd39c63,
+    collides: false,
+  },
   {
     id: 'jukebox',
     x: 438,
@@ -378,7 +398,7 @@ const propFurniture: FurnitureDefinition[] = [
   {
     id: 'payphone',
     x: 566,
-    y: 798,
+    y: 848,
     width: 34,
     height: 78,
     color: 0x48505a,
@@ -388,7 +408,7 @@ const propFurniture: FurnitureDefinition[] = [
   {
     id: 'resume-stand',
     x: 820,
-    y: 798,
+    y: 848,
     width: 118,
     height: 58,
     color: 0x6f4a2d,

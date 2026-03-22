@@ -6,6 +6,7 @@ import { drawBarCounter } from './furniture/barRenderer';
 import { drawBoothPiece } from './furniture/boothRenderer';
 import {
   drawBoard,
+  drawCarpet,
   drawColumn,
   drawJukebox,
   drawPhone,
@@ -25,6 +26,7 @@ type FurnitureRenderKind =
   | 'phone'
   | 'resume'
   | 'board'
+  | 'carpet'
   | 'fallback';
 
 const SKIPPED_FURNITURE_IDS = new Set([
@@ -61,6 +63,10 @@ function resolveFurnitureRenderKind(
 
   if (piece.id.includes('column')) {
     return 'column';
+  }
+
+  if (piece.id.includes('carpet')) {
+    return 'carpet';
   }
 
   if (piece.id.includes('jukebox')) {
@@ -107,6 +113,9 @@ export function drawFurniture(
         return;
       case 'column':
         drawColumn(scene, piece);
+        return;
+      case 'carpet':
+        drawCarpet(scene, piece);
         return;
       case 'jukebox':
         drawJukebox(scene, piece);

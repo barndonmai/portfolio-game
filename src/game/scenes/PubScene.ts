@@ -56,8 +56,8 @@ const ANIMATION_WALK_STOP_SPEED = 20;
 const ANIMATION_DIRECTION_CHANGE_SPEED = 32;
 const VISUAL_POSITION_SNAP = 1;
 const TOUCH_MOVE_ARRIVAL_RADIUS = 14;
-const FLOATING_CENTERPIECE_X = 690;
-const FLOATING_CENTERPIECE_Y = 498;
+const FLOATING_CENTERPIECE_X = 780;
+const FLOATING_CENTERPIECE_Y = 548;
 type PlayerHitbox = Phaser.GameObjects.Rectangle & {
   body: Phaser.Physics.Arcade.Body;
 };

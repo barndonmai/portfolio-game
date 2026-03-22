@@ -41,13 +41,13 @@ export function drawDecor(
   createBottleShelf(scene, px(560), py(64), backBarAccentDepth + 0.01);
   createBottleShelf(scene, px(1230), py(64), backBarAccentDepth + 0.01);
 
-  addRect(scene, px(180), py(118), pw(170), ph(60), 0x5f4325).setDepth(
+  addRect(scene, px(180), py(118), pw(170), ph(84), 0x5f4325).setDepth(
     DECOR_DEPTH,
   );
-  addRect(scene, px(180), py(118), pw(150), ph(44), 0x141c1b).setDepth(
+  addRect(scene, px(180), py(118), pw(150), ph(66), 0x141c1b).setDepth(
     DECOR_DEPTH + 0.1,
   );
-  addRect(scene, px(180), py(152), pw(18), ph(12), 0x3a2a1a).setDepth(
+  addRect(scene, px(180), py(166), pw(18), ph(14), 0x3a2a1a).setDepth(
     DECOR_DEPTH - 0.05,
   );
 

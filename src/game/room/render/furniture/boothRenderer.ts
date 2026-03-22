@@ -13,6 +13,7 @@ const ROTATED_BOOTH_IDS = new Set([
   'booth-island-a-bottom',
   'booth-island-b-bottom',
   'booth-island-c-bottom',
+  'tv-bench',
 ]);
 
 export function drawBoothPiece(
