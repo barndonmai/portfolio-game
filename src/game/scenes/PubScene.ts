@@ -5,6 +5,11 @@ import {
   onUiLock,
   type InteractableSummary,
 } from '../gameEvents';
+import { defaultPlayerCharacter } from '../characters/characterDefinitions';
+import { createCharacterAnimations } from '../characters/createCharacterAnimations';
+import type { Direction } from '../characters/directions';
+import type { CharacterDefinition } from '../characters/types';
+import { updateCharacterAnimation } from '../characters/updateCharacterAnimation';
 import {
   furniture,
   interactables,
@@ -16,26 +21,68 @@ import {
   type InteractableDefinition,
 } from '../roomData';
 
-type PlayerRectangle = Phaser.GameObjects.Rectangle & {
+const CAMERA_FOLLOW_LERP = 0.16;
+const ANIMATION_WALK_START_SPEED = 56;
+const ANIMATION_WALK_STOP_SPEED = 20;
+const ANIMATION_DIRECTION_CHANGE_SPEED = 32;
+const VISUAL_POSITION_SNAP = 1;
+
+type PlayerHitbox = Phaser.GameObjects.Rectangle & {
   body: Phaser.Physics.Arcade.Body;
 };
 
 export class PubScene extends Phaser.Scene {
-  private player!: PlayerRectangle;
+  private player!: PlayerHitbox;
   private playerShadow!: Phaser.GameObjects.Ellipse;
+  private playerSprite!: Phaser.GameObjects.Sprite;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: Record<'W' | 'A' | 'S' | 'D', Phaser.Input.Keyboard.Key>;
   private interactKey!: Phaser.Input.Keyboard.Key;
   private currentNearby: InteractableSummary | null = null;
   private uiLocked = false;
   private unsubscribeUiLock: (() => void) | null = null;
+  private readonly playerCharacter: CharacterDefinition = defaultPlayerCharacter;
+  private readonly movementIntent = new Phaser.Math.Vector2();
+  private playerFacing: Direction = 's';
+  private currentAnimationKey: string | null = null;
 
   constructor() {
     super('PubScene');
   }
 
+  preload() {
+    if (this.playerCharacter.sheet.kind === 'grid') {
+      this.load.spritesheet(
+        this.playerCharacter.sheet.textureKey,
+        this.playerCharacter.sheet.assetPath,
+        {
+          frameWidth: this.playerCharacter.sheet.frameWidth,
+          frameHeight: this.playerCharacter.sheet.frameHeight,
+          margin: this.playerCharacter.sheet.margin ?? 0,
+          spacing: this.playerCharacter.sheet.spacing ?? 0,
+        },
+      );
+      return;
+    }
+
+    if (this.playerCharacter.sheet.kind === 'textures') {
+      Object.entries(this.playerCharacter.sheet.textures).forEach(
+        ([textureKey, assetPath]) => {
+          this.load.image(textureKey, assetPath);
+        },
+      );
+      return;
+    }
+
+    this.load.image(
+      this.playerCharacter.sheet.textureKey,
+      this.playerCharacter.sheet.assetPath,
+    );
+  }
+
   create() {
     this.physics.world.setBounds(0, 0, ROOM_WIDTH, ROOM_HEIGHT);
+    createCharacterAnimations(this, this.playerCharacter);
     this.drawRoomShell();
     this.addFurniture();
     this.addDecor();
@@ -54,14 +101,17 @@ export class PubScene extends Phaser.Scene {
 
   update() {
     if (this.uiLocked) {
+      this.movementIntent.set(0, 0);
       this.player.body.setVelocity(0, 0);
-      this.playerShadow.setPosition(this.player.x, this.player.y + 16);
+      this.updatePlayerAnimation();
+      this.syncPlayerVisuals();
       return;
     }
 
     this.handleMovement();
     this.updateNearbyInteractable();
-    this.playerShadow.setPosition(this.player.x, this.player.y + 16);
+    this.updatePlayerAnimation();
+    this.syncPlayerVisuals();
 
     if (
       this.currentNearby &&
@@ -166,11 +216,32 @@ export class PubScene extends Phaser.Scene {
   }
 
   private createPlayer() {
+    const { render, key } = this.playerCharacter;
+    const initialIdleFrame =
+      this.playerCharacter.animations.directions[this.playerFacing].idleFrame;
+    const initialTextureKey = (() => {
+      if (initialIdleFrame.kind === 'texture') {
+        return initialIdleFrame.textureKey;
+      }
+
+      if (this.playerCharacter.sheet.kind === 'textures') {
+        throw new Error(
+          'Texture-based characters must use texture frame sources for initial sprites.',
+        );
+      }
+
+      return this.playerCharacter.sheet.textureKey;
+    })();
+    const initialTextureFrame =
+      initialIdleFrame.kind === 'texture'
+        ? initialIdleFrame.frame
+        : undefined;
+
     this.playerShadow = this.add.ellipse(
       PLAYER_SPAWN.x,
-      PLAYER_SPAWN.y + 16,
-      18,
-      10,
+      PLAYER_SPAWN.y + render.shadowOffsetY,
+      render.shadowWidth,
+      render.shadowHeight,
       0x000000,
       0.25,
     );
@@ -178,12 +249,24 @@ export class PubScene extends Phaser.Scene {
     this.player = this.add.rectangle(
       PLAYER_SPAWN.x,
       PLAYER_SPAWN.y,
-      22,
-      28,
+      render.hitboxWidth,
+      render.hitboxHeight,
       0xf4d08f,
-    ) as PlayerRectangle;
-    this.player.setStrokeStyle(2, 0x4d3428);
-    this.player.setDepth(10);
+    ) as PlayerHitbox;
+    this.player.setAlpha(0);
+
+    this.playerSprite = this.add.sprite(
+      PLAYER_SPAWN.x,
+      PLAYER_SPAWN.y + render.spriteOffsetY,
+      initialTextureKey,
+      initialTextureFrame,
+    );
+    this.playerSprite.setDisplaySize(
+      render.displayWidth,
+      render.displayHeight,
+    );
+    this.playerSprite.setOrigin(render.originX, render.originY);
+    this.playerSprite.setDepth(10);
     this.playerShadow.setDepth(9);
 
     this.physics.add.existing(this.player);
@@ -204,6 +287,10 @@ export class PubScene extends Phaser.Scene {
         this.physics.add.existing(collider, true);
         this.physics.add.collider(this.player, collider);
       });
+
+    this.currentAnimationKey = `${key}-idle-${this.playerFacing}`;
+    this.playerSprite.play(this.currentAnimationKey);
+    this.syncPlayerVisuals();
   }
 
   private setupInput() {
@@ -214,7 +301,12 @@ export class PubScene extends Phaser.Scene {
     }
 
     this.cursors = keyboard.createCursorKeys();
-    this.wasd = keyboard.addKeys('W,A,S,D') as Record<
+    this.wasd = keyboard.addKeys({
+      W: Phaser.Input.Keyboard.KeyCodes.W,
+      A: Phaser.Input.Keyboard.KeyCodes.A,
+      S: Phaser.Input.Keyboard.KeyCodes.S,
+      D: Phaser.Input.Keyboard.KeyCodes.D,
+    }) as Record<
       'W' | 'A' | 'S' | 'D',
       Phaser.Input.Keyboard.Key
     >;
@@ -225,7 +317,12 @@ export class PubScene extends Phaser.Scene {
     const camera = this.cameras.main;
     camera.setBounds(0, 0, ROOM_WIDTH, ROOM_HEIGHT);
     camera.roundPixels = true;
-    camera.startFollow(this.player, true, 0.1, 0.1);
+    camera.startFollow(
+      this.player,
+      true,
+      CAMERA_FOLLOW_LERP,
+      CAMERA_FOLLOW_LERP,
+    );
     this.applyCameraViewport(this.scale.width, this.scale.height);
     this.scale.on(Phaser.Scale.Events.RESIZE, this.handleResize, this);
   }
@@ -256,23 +353,71 @@ export class PubScene extends Phaser.Scene {
       this.uiLocked = locked;
 
       if (locked) {
+        this.movementIntent.set(0, 0);
         this.player.body.setVelocity(0, 0);
       }
     });
   }
 
   private handleMovement() {
-    const horizontal =
-      (this.cursors.left.isDown || this.wasd.A.isDown ? -1 : 0) +
-      (this.cursors.right.isDown || this.wasd.D.isDown ? 1 : 0);
-    const vertical =
-      (this.cursors.up.isDown || this.wasd.W.isDown ? -1 : 0) +
-      (this.cursors.down.isDown || this.wasd.S.isDown ? 1 : 0);
+    const isMovingLeft = this.cursors.left.isDown || this.wasd.A.isDown;
+    const isMovingRight = this.cursors.right.isDown || this.wasd.D.isDown;
+    const isMovingUp = this.cursors.up.isDown || this.wasd.W.isDown;
+    const isMovingDown = this.cursors.down.isDown || this.wasd.S.isDown;
 
-    const movement = new Phaser.Math.Vector2(horizontal, vertical).normalize();
-    this.player.body.setVelocity(
-      movement.x * PLAYER_SPEED,
-      movement.y * PLAYER_SPEED,
+    const horizontal = (isMovingLeft ? -1 : 0) + (isMovingRight ? 1 : 0);
+    const vertical = (isMovingUp ? -1 : 0) + (isMovingDown ? 1 : 0);
+
+    if (horizontal === 0 && vertical === 0) {
+      this.movementIntent.set(0, 0);
+      this.player.body.setVelocity(0, 0);
+      return;
+    }
+
+    this.movementIntent.set(horizontal, vertical).normalize();
+
+    const targetVelocityX = this.movementIntent.x * PLAYER_SPEED;
+    const targetVelocityY = this.movementIntent.y * PLAYER_SPEED;
+
+    if (
+      this.player.body.velocity.x !== targetVelocityX ||
+      this.player.body.velocity.y !== targetVelocityY
+    ) {
+      this.player.body.setVelocity(targetVelocityX, targetVelocityY);
+    }
+  }
+
+  private updatePlayerAnimation() {
+    const nextState = updateCharacterAnimation({
+      sprite: this.playerSprite,
+      characterKey: this.playerCharacter.key,
+      animationConfig: this.playerCharacter.animations,
+      velocityX: this.player.body.velocity.x,
+      velocityY: this.player.body.velocity.y,
+      movementIntentX: this.movementIntent.x,
+      movementIntentY: this.movementIntent.y,
+      currentFacing: this.playerFacing,
+      currentAnimationKey: this.currentAnimationKey,
+      walkStartThreshold: ANIMATION_WALK_START_SPEED,
+      walkStopThreshold: ANIMATION_WALK_STOP_SPEED,
+      directionChangeThreshold: ANIMATION_DIRECTION_CHANGE_SPEED,
+    });
+
+    this.playerFacing = nextState.facing;
+    this.currentAnimationKey = nextState.animationKey;
+  }
+
+  private syncPlayerVisuals() {
+    const snappedX = Phaser.Math.Snap.To(this.player.x, VISUAL_POSITION_SNAP);
+    const snappedY = Phaser.Math.Snap.To(this.player.y, VISUAL_POSITION_SNAP);
+
+    this.playerShadow.setPosition(
+      snappedX,
+      snappedY + this.playerCharacter.render.shadowOffsetY,
+    );
+    this.playerSprite.setPosition(
+      snappedX,
+      snappedY + this.playerCharacter.render.spriteOffsetY,
     );
   }
 
