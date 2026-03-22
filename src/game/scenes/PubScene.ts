@@ -27,6 +27,7 @@ const ANIMATION_WALK_START_SPEED = 56;
 const ANIMATION_WALK_STOP_SPEED = 20;
 const ANIMATION_DIRECTION_CHANGE_SPEED = 32;
 const VISUAL_POSITION_SNAP = 1;
+const TOUCH_MOVE_ARRIVAL_RADIUS = 14;
 
 type PlayerHitbox = Phaser.GameObjects.Rectangle & {
   body: Phaser.Physics.Arcade.Body;
@@ -44,7 +45,9 @@ export class PubScene extends Phaser.Scene {
   private unsubscribeUiLock: (() => void) | null = null;
   private readonly playerCharacter: CharacterDefinition = defaultPlayerCharacter;
   private readonly movementIntent = new Phaser.Math.Vector2();
+  private readonly touchMoveTarget = new Phaser.Math.Vector2();
   private virtualJoystick: VirtualJoystick | null = null;
+  private activeTouchMovePointerId: number | null = null;
   private playerFacing: Direction = 's';
   private currentAnimationKey: string | null = null;
 
@@ -97,6 +100,21 @@ export class PubScene extends Phaser.Scene {
       this.handlePointerDownForVirtualJoystick,
       this,
     );
+    this.input.on(
+      Phaser.Input.Events.POINTER_DOWN,
+      this.handlePointerDownForTouchMove,
+      this,
+    );
+    this.input.on(
+      Phaser.Input.Events.POINTER_MOVE,
+      this.handlePointerMoveForTouchMove,
+      this,
+    );
+    this.input.on(
+      Phaser.Input.Events.POINTER_UP,
+      this.handlePointerUpForTouchMove,
+      this,
+    );
     this.subscribeToUiLock();
     this.setupCamera();
 
@@ -105,6 +123,21 @@ export class PubScene extends Phaser.Scene {
       this.input.off(
         Phaser.Input.Events.POINTER_DOWN,
         this.handlePointerDownForVirtualJoystick,
+        this,
+      );
+      this.input.off(
+        Phaser.Input.Events.POINTER_DOWN,
+        this.handlePointerDownForTouchMove,
+        this,
+      );
+      this.input.off(
+        Phaser.Input.Events.POINTER_MOVE,
+        this.handlePointerMoveForTouchMove,
+        this,
+      );
+      this.input.off(
+        Phaser.Input.Events.POINTER_UP,
+        this.handlePointerUpForTouchMove,
         this,
       );
       this.unsubscribeUiLock?.();
@@ -116,6 +149,7 @@ export class PubScene extends Phaser.Scene {
   update() {
     if (this.uiLocked) {
       this.movementIntent.set(0, 0);
+      this.clearTouchMoveTarget();
       this.virtualJoystick?.reset();
       this.player.body.setVelocity(0, 0);
       this.updatePlayerAnimation();
@@ -358,6 +392,35 @@ export class PubScene extends Phaser.Scene {
     this.setupVirtualJoystick(true);
   }
 
+  private handlePointerDownForTouchMove(pointer: Phaser.Input.Pointer) {
+    if (this.uiLocked || !this.isTouchLikePointer(pointer)) {
+      return;
+    }
+
+    this.activeTouchMovePointerId = pointer.id;
+    this.updateTouchMoveTarget(pointer);
+  }
+
+  private handlePointerMoveForTouchMove(pointer: Phaser.Input.Pointer) {
+    if (
+      this.uiLocked ||
+      pointer.id !== this.activeTouchMovePointerId ||
+      !this.isTouchLikePointer(pointer)
+    ) {
+      return;
+    }
+
+    this.updateTouchMoveTarget(pointer);
+  }
+
+  private handlePointerUpForTouchMove(pointer: Phaser.Input.Pointer) {
+    if (pointer.id !== this.activeTouchMovePointerId) {
+      return;
+    }
+
+    this.clearTouchMoveTarget();
+  }
+
   private setupCamera() {
     const camera = this.cameras.main;
     camera.setBounds(0, 0, ROOM_WIDTH, ROOM_HEIGHT);
@@ -399,6 +462,7 @@ export class PubScene extends Phaser.Scene {
 
       if (locked) {
         this.movementIntent.set(0, 0);
+        this.clearTouchMoveTarget();
         this.virtualJoystick?.reset();
         this.player.body.setVelocity(0, 0);
       }
@@ -423,7 +487,31 @@ export class PubScene extends Phaser.Scene {
     const vertical =
       keyboardVector.y + (joystickVector?.y ?? 0);
 
+    if (horizontal !== 0 || vertical !== 0) {
+      this.clearTouchMoveTarget();
+    }
+
     if (horizontal === 0 && vertical === 0) {
+      if (this.activeTouchMovePointerId !== null) {
+        const deltaX = this.touchMoveTarget.x - this.player.x;
+        const deltaY = this.touchMoveTarget.y - this.player.y;
+        const distance = Math.hypot(deltaX, deltaY);
+
+        if (distance <= TOUCH_MOVE_ARRIVAL_RADIUS) {
+          this.clearTouchMoveTarget();
+          this.movementIntent.set(0, 0);
+          this.player.body.setVelocity(0, 0);
+          return;
+        }
+
+        this.movementIntent.set(deltaX, deltaY).normalize();
+        this.player.body.setVelocity(
+          this.movementIntent.x * PLAYER_SPEED,
+          this.movementIntent.y * PLAYER_SPEED,
+        );
+        return;
+      }
+
       this.movementIntent.set(0, 0);
       this.player.body.setVelocity(0, 0);
       return;
@@ -460,6 +548,20 @@ export class PubScene extends Phaser.Scene {
       pointerType === 'touch' ||
       pointerType === 'pen'
     );
+  }
+
+  private updateTouchMoveTarget(pointer: Phaser.Input.Pointer) {
+    const worldPoint = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+
+    this.touchMoveTarget.set(
+      Phaser.Math.Clamp(worldPoint.x, 0, ROOM_WIDTH),
+      Phaser.Math.Clamp(worldPoint.y, 0, ROOM_HEIGHT),
+    );
+  }
+
+  private clearTouchMoveTarget() {
+    this.activeTouchMovePointerId = null;
+    this.touchMoveTarget.set(0, 0);
   }
 
   private updatePlayerAnimation() {
