@@ -80,7 +80,9 @@ export default function App() {
             The Lantern & Link
           </p>
           <p className="mt-2 text-sm leading-6 text-pub-cream/80">
-            Walk the room. Press E when a prompt appears.
+            {isTouchUi
+              ? 'Tap or hold anywhere to move. Walk up to a prompt to explore.'
+              : 'Walk the room. Press E when a prompt appears.'}
           </p>
         </section>
 

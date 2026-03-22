@@ -2,7 +2,7 @@ import type { PortfolioSectionId } from '../types/portfolio';
 
 export const ROOM_WIDTH = 1760;
 export const ROOM_HEIGHT = 1180;
-export const PLAYER_SPEED = 180;
+export const PLAYER_SPEED = 270;
 export const INTERACTION_RADIUS = 78;
 export const PLAYER_SPAWN = { x: 900, y: 1020 };
 

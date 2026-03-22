@@ -1,6 +1,6 @@
-# Cozy Pub Portfolio
+# Brandon Mai
 
-A browser-based portfolio MVP built with Vite, React, TypeScript, Phaser 3, and Tailwind CSS.
+A browser-based portfolio built with Vite, React, TypeScript, Phaser 3, and Tailwind CSS.
 
 ## Install
 

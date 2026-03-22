@@ -9,7 +9,6 @@ import { defaultPlayerCharacter } from '../characters/characterDefinitions';
 import { createCharacterAnimations } from '../characters/createCharacterAnimations';
 import type { Direction } from '../characters/directions';
 import type { CharacterDefinition } from '../characters/types';
-import { VirtualJoystick } from '../input/VirtualJoystick';
 import { updateCharacterAnimation } from '../characters/updateCharacterAnimation';
 import {
   furniture,
@@ -46,7 +45,6 @@ export class PubScene extends Phaser.Scene {
   private readonly playerCharacter: CharacterDefinition = defaultPlayerCharacter;
   private readonly movementIntent = new Phaser.Math.Vector2();
   private readonly touchMoveTarget = new Phaser.Math.Vector2();
-  private virtualJoystick: VirtualJoystick | null = null;
   private activeTouchMovePointerId: number | null = null;
   private playerFacing: Direction = 's';
   private currentAnimationKey: string | null = null;
@@ -94,12 +92,6 @@ export class PubScene extends Phaser.Scene {
     this.addInteractables();
     this.createPlayer();
     this.setupInput();
-    this.setupVirtualJoystick();
-    this.input.on(
-      Phaser.Input.Events.POINTER_DOWN,
-      this.handlePointerDownForVirtualJoystick,
-      this,
-    );
     this.input.on(
       Phaser.Input.Events.POINTER_DOWN,
       this.handlePointerDownForTouchMove,
@@ -122,11 +114,6 @@ export class PubScene extends Phaser.Scene {
       this.scale.off(Phaser.Scale.Events.RESIZE, this.handleResize, this);
       this.input.off(
         Phaser.Input.Events.POINTER_DOWN,
-        this.handlePointerDownForVirtualJoystick,
-        this,
-      );
-      this.input.off(
-        Phaser.Input.Events.POINTER_DOWN,
         this.handlePointerDownForTouchMove,
         this,
       );
@@ -141,7 +128,6 @@ export class PubScene extends Phaser.Scene {
         this,
       );
       this.unsubscribeUiLock?.();
-      this.virtualJoystick?.destroy();
       emitNearbyInteractable(null);
     });
   }
@@ -150,7 +136,6 @@ export class PubScene extends Phaser.Scene {
     if (this.uiLocked) {
       this.movementIntent.set(0, 0);
       this.clearTouchMoveTarget();
-      this.virtualJoystick?.reset();
       this.player.body.setVelocity(0, 0);
       this.updatePlayerAnimation();
       this.syncPlayerVisuals();
@@ -362,36 +347,6 @@ export class PubScene extends Phaser.Scene {
     this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
   }
 
-  private setupVirtualJoystick(force = false) {
-    if (
-      this.virtualJoystick ||
-      (!force && !VirtualJoystick.shouldEnable(this))
-    ) {
-      return;
-    }
-
-    this.input.addPointer(1);
-    this.virtualJoystick = new VirtualJoystick(this, {
-      align: 'right',
-      marginRight: 94,
-      marginBottom: 94,
-    });
-  }
-
-  private handlePointerDownForVirtualJoystick(
-    pointer: Phaser.Input.Pointer,
-  ) {
-    if (this.virtualJoystick) {
-      return;
-    }
-
-    if (!this.isTouchLikePointer(pointer)) {
-      return;
-    }
-
-    this.setupVirtualJoystick(true);
-  }
-
   private handlePointerDownForTouchMove(pointer: Phaser.Input.Pointer) {
     if (this.uiLocked || !this.isTouchLikePointer(pointer)) {
       return;
@@ -463,7 +418,6 @@ export class PubScene extends Phaser.Scene {
       if (locked) {
         this.movementIntent.set(0, 0);
         this.clearTouchMoveTarget();
-        this.virtualJoystick?.reset();
         this.player.body.setVelocity(0, 0);
       }
     });
@@ -481,11 +435,8 @@ export class PubScene extends Phaser.Scene {
       keyboardVector.normalize();
     }
 
-    const joystickVector = this.virtualJoystick?.getVector();
-    const horizontal =
-      keyboardVector.x + (joystickVector?.x ?? 0);
-    const vertical =
-      keyboardVector.y + (joystickVector?.y ?? 0);
+    const horizontal = keyboardVector.x;
+    const vertical = keyboardVector.y;
 
     if (horizontal !== 0 || vertical !== 0) {
       this.clearTouchMoveTarget();
