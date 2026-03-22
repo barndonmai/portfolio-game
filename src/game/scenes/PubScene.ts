@@ -19,6 +19,16 @@ import type { Direction } from '../characters/directions';
 import type { CharacterDefinition } from '../characters/types';
 import { updateCharacterAnimation } from '../characters/updateCharacterAnimation';
 import {
+  BACK_BAR_TEXTURE_KEY,
+  BAR_COUNTER_TEXTURE_KEY,
+  BOOTH_ROTATED_180_TEXTURE_KEY,
+  BOOTH_TEXTURE_KEY,
+  FLOOR_TEXTURE_KEY,
+  RECT_TABLE_TEXTURE_KEY,
+  ROUND_TABLE_TEXTURE_KEY,
+  STOOL_TEXTURE_KEY,
+} from '../room/config/textureKeys';
+import {
   createAnimatedJukebox,
   createAnimatedPubPhone,
   createFloatingCenterpiece,
@@ -27,7 +37,7 @@ import {
   drawFurniture,
   drawInteractables,
   drawPubShell,
-} from '../render/pubVisuals';
+} from '../room/render';
 import {
   furniture,
   interactables,
@@ -38,7 +48,7 @@ import {
   ROOM_WIDTH,
   type InteractableDefinition,
   wallColliders,
-} from '../roomData';
+} from '../room/data';
 
 const CAMERA_FOLLOW_LERP = 0.16;
 const ANIMATION_WALK_START_SPEED = 56;
@@ -74,17 +84,17 @@ export class PubScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.spritesheet('pub-floor-tiles', floorTilesetSprite, {
+    this.load.spritesheet(FLOOR_TEXTURE_KEY, floorTilesetSprite, {
       frameWidth: 16,
       frameHeight: 16,
     });
-    this.load.image('pub-back-bar', backBarSprite);
-    this.load.image('pub-bar-counter-topdown', barCounterTopdownSprite);
-    this.load.image('pub-bar-stool', barStoolSprite);
-    this.load.image('pub-booth-couch', boothCouchSprite);
-    this.load.image('pub-booth-couch-rotated-180', boothCouchRotated180Sprite);
-    this.load.image('pub-table-rect', rectTableSprite);
-    this.load.image('pub-table-round', roundTableSprite);
+    this.load.image(BACK_BAR_TEXTURE_KEY, backBarSprite);
+    this.load.image(BAR_COUNTER_TEXTURE_KEY, barCounterTopdownSprite);
+    this.load.image(STOOL_TEXTURE_KEY, barStoolSprite);
+    this.load.image(BOOTH_TEXTURE_KEY, boothCouchSprite);
+    this.load.image(BOOTH_ROTATED_180_TEXTURE_KEY, boothCouchRotated180Sprite);
+    this.load.image(RECT_TABLE_TEXTURE_KEY, rectTableSprite);
+    this.load.image(ROUND_TABLE_TEXTURE_KEY, roundTableSprite);
 
     if (this.playerCharacter.sheet.kind === 'grid') {
       this.load.spritesheet(

@@ -1,0 +1,8 @@
+export const FLOOR_TEXTURE_KEY = 'pub-floor-tiles';
+export const BACK_BAR_TEXTURE_KEY = 'pub-back-bar';
+export const BAR_COUNTER_TEXTURE_KEY = 'pub-bar-counter-topdown';
+export const STOOL_TEXTURE_KEY = 'pub-bar-stool';
+export const BOOTH_TEXTURE_KEY = 'pub-booth-couch';
+export const BOOTH_ROTATED_180_TEXTURE_KEY = 'pub-booth-couch-rotated-180';
+export const RECT_TABLE_TEXTURE_KEY = 'pub-table-rect';
+export const ROUND_TABLE_TEXTURE_KEY = 'pub-table-round';
