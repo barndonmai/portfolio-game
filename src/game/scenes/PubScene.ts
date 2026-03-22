@@ -157,11 +157,22 @@ export class PubScene extends Phaser.Scene {
 
   private drawRoomShell() {
     this.add
-      .rectangle(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, ROOM_WIDTH, ROOM_HEIGHT, 0x563621)
-      .setStrokeStyle(18, 0x2b1a14);
+      .rectangle(
+        ROOM_WIDTH / 2,
+        ROOM_HEIGHT / 2,
+        ROOM_WIDTH,
+        ROOM_HEIGHT,
+        0x4a2f21,
+      )
+      .setStrokeStyle(18, 0x241712);
+
+    this.add.rectangle(ROOM_WIDTH / 2, 78, ROOM_WIDTH, 156, 0x35584f);
+    this.add.rectangle(ROOM_WIDTH - 88, ROOM_HEIGHT / 2, 176, ROOM_HEIGHT, 0x35584f);
+    this.add.rectangle(ROOM_WIDTH / 2, 92, ROOM_WIDTH, 52, 0x2b1a14, 0.85);
+    this.add.rectangle(ROOM_WIDTH - 88, ROOM_HEIGHT / 2, 54, ROOM_HEIGHT, 0x2b1a14, 0.72);
 
     const floorLines = this.add.graphics();
-    floorLines.lineStyle(2, 0x6a442a, 0.4);
+    floorLines.lineStyle(2, 0x6a442a, 0.28);
     for (let x = 52; x < ROOM_WIDTH - 40; x += 36) {
       floorLines.lineBetween(x, 40, x, ROOM_HEIGHT - 40);
     }
@@ -170,57 +181,96 @@ export class PubScene extends Phaser.Scene {
     }
 
     this.add
-      .rectangle(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 620, 860, 0x6a1f1f, 0.22)
-      .setStrokeStyle(4, 0xc58c5a, 0.5);
+      .rectangle(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 720, 860, 0x6d2324, 0.1)
+      .setStrokeStyle(4, 0xc58c5a, 0.35);
 
-    this.add.rectangle(ROOM_WIDTH / 2, 26, ROOM_WIDTH - 24, 28, 0x2a1914);
-    this.add.rectangle(ROOM_WIDTH / 2, ROOM_HEIGHT - 26, ROOM_WIDTH - 24, 28, 0x2a1914);
-    this.add.rectangle(26, ROOM_HEIGHT / 2, 28, ROOM_HEIGHT - 24, 0x2a1914);
+    this.add.rectangle(316, 156, 492, 308, 0x231614, 0.18);
+    this.add.rectangle(836, 66, 216, 116, 0x1d1413, 0.5);
+    this.add.rectangle(836, 118, 144, 12, 0xc58c5a, 0.45);
+    this.add.rectangle(ROOM_WIDTH / 2, 26, 712, 28, 0x2a1914);
+    this.add.rectangle(308, 26, 592, 28, 0x2a1914);
+    this.add.rectangle(1378, 26, 616, 28, 0x2a1914);
+    this.add.rectangle(26, ROOM_HEIGHT / 2, 28, 596, 0x2a1914);
     this.add.rectangle(ROOM_WIDTH - 26, ROOM_HEIGHT / 2, 28, ROOM_HEIGHT - 24, 0x2a1914);
+    this.add.rectangle(314, ROOM_HEIGHT - 26, 612, 28, 0x2a1914);
+    this.add.rectangle(1438, ROOM_HEIGHT - 26, 408, 28, 0x2a1914);
+    this.add.rectangle(1048, ROOM_HEIGHT - 26, 220, 14, 0xc58c5a, 0.4);
   }
 
   private addFurniture() {
     furniture.forEach((piece) => {
-      this.add
-        .rectangle(piece.x, piece.y, piece.width, piece.height, piece.color)
-        .setStrokeStyle(3, piece.stroke);
+      const shape =
+        piece.shape === 'ellipse'
+          ? this.add.ellipse(
+              piece.x,
+              piece.y,
+              piece.width,
+              piece.height,
+              piece.color,
+            )
+          : this.add.rectangle(
+              piece.x,
+              piece.y,
+              piece.width,
+              piece.height,
+              piece.color,
+            );
+
+      shape.setStrokeStyle(3, piece.stroke);
     });
   }
 
   private addDecor() {
     const decor = this.add.graphics();
     decor.fillStyle(0xe0b35b, 1);
-    decor.fillCircle(136, 84, 9);
-    decor.fillCircle(286, 84, 9);
-    decor.fillCircle(1120, 84, 9);
-    decor.fillCircle(1320, 84, 9);
-    decor.fillCircle(1520, 84, 9);
+    decor.fillCircle(130, 88, 9);
+    decor.fillCircle(292, 88, 9);
+    decor.fillCircle(486, 88, 9);
+    decor.fillCircle(1040, 88, 9);
+    decor.fillCircle(1282, 88, 9);
+    decor.fillCircle(1514, 88, 9);
 
     decor.fillStyle(0x8b5a2b, 1);
-    decor.fillRect(520, 62, 84, 52);
-    decor.fillRect(648, 62, 112, 52);
-    decor.fillRect(796, 62, 84, 52);
+    decor.fillRect(544, 62, 86, 54);
+    decor.fillRect(656, 62, 124, 54);
+    decor.fillRect(1228, 62, 102, 54);
+    decor.fillRect(1384, 62, 84, 54);
 
     decor.lineStyle(3, 0xd8b074, 1);
-    decor.strokeRect(520, 62, 84, 52);
-    decor.strokeRect(648, 62, 112, 52);
-    decor.strokeRect(796, 62, 84, 52);
+    decor.strokeRect(544, 62, 86, 54);
+    decor.strokeRect(656, 62, 124, 54);
+    decor.strokeRect(1228, 62, 102, 54);
+    decor.strokeRect(1384, 62, 84, 54);
 
     decor.fillStyle(0x7a5a24, 1);
-    decor.fillRect(84, 972, 96, 18);
-    decor.fillRect(1380, 972, 136, 18);
+    decor.fillRect(92, 910, 88, 18);
+    decor.fillRect(1186, 944, 126, 18);
+    decor.fillRect(1540, 570, 28, 176);
+    decor.fillStyle(0xc8a15f, 0.7);
+    decor.fillRect(1540, 620, 28, 10);
+    decor.fillRect(1540, 674, 28, 10);
+    decor.fillRect(1540, 728, 28, 10);
+    decor.fillRect(1540, 782, 28, 10);
 
     this.add
-      .text(130, 968, 'JUKE', {
+      .text(136, 906, 'MUSIC', {
         color: '#f2e4c8',
         fontFamily: 'monospace',
-        fontSize: '14px',
+        fontSize: '12px',
       })
       .setOrigin(0.5);
 
     this.add
-      .text(1448, 968, 'RESUME', {
+      .text(1248, 940, 'FRAME', {
         color: '#f2e4c8',
+        fontFamily: 'monospace',
+        fontSize: '12px',
+      })
+      .setOrigin(0.5);
+
+    this.add
+      .text(836, 86, 'HALL', {
+        color: '#d8b074',
         fontFamily: 'monospace',
         fontSize: '12px',
       })
@@ -401,13 +451,13 @@ export class PubScene extends Phaser.Scene {
   }
 
   private getCameraZoom(width: number, height: number) {
-    const targetVisibleWidth = 1100;
-    const targetVisibleHeight = 700;
+    const targetVisibleWidth = 1220;
+    const targetVisibleHeight = 780;
 
     return Phaser.Math.Clamp(
       Math.max(width / targetVisibleWidth, height / targetVisibleHeight),
-      1.35,
-      2.2,
+      1.25,
+      2.05,
     );
   }
 
