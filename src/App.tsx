@@ -1,19 +1,20 @@
-import { useEffect, useState } from 'react';
-import { GameCanvas } from './components/GameCanvas';
-import { InteractionPrompt } from './components/InteractionPrompt';
-import { SectionModal } from './components/SectionModal';
+import { useEffect, useState } from "react";
+import { GameCanvas } from "./components/GameCanvas";
+import { InteractionPrompt } from "./components/InteractionPrompt";
+import { SectionModal } from "./components/SectionModal";
 import {
   emitOpenSection,
   emitUiLock,
   onNearbyInteractable,
   onOpenSection,
   type InteractableSummary,
-} from './game/gameEvents';
-import type { PortfolioSectionId } from './types/portfolio';
+} from "./game/gameEvents";
+import type { PortfolioSectionId } from "./types/portfolio";
 
 export default function App() {
-  const [activeSection, setActiveSection] =
-    useState<PortfolioSectionId | null>(null);
+  const [activeSection, setActiveSection] = useState<PortfolioSectionId | null>(
+    null,
+  );
   const [nearbyInteractable, setNearbyInteractable] =
     useState<InteractableSummary | null>(null);
   const [isTouchUi, setIsTouchUi] = useState(false);
@@ -38,17 +39,17 @@ export default function App() {
   }, [activeSection]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return;
     }
 
-    const pointerMedia = window.matchMedia('(pointer: coarse)');
-    const anyPointerMedia = window.matchMedia('(any-pointer: coarse)');
-    const hoverMedia = window.matchMedia('(hover: none)');
+    const pointerMedia = window.matchMedia("(pointer: coarse)");
+    const anyPointerMedia = window.matchMedia("(any-pointer: coarse)");
+    const hoverMedia = window.matchMedia("(hover: none)");
 
     const updateTouchUi = () => {
       setIsTouchUi(
-        'ontouchstart' in window ||
+        "ontouchstart" in window ||
           navigator.maxTouchPoints > 0 ||
           pointerMedia.matches ||
           anyPointerMedia.matches ||
@@ -60,14 +61,14 @@ export default function App() {
 
     updateTouchUi();
 
-    pointerMedia.addEventListener?.('change', updateTouchUi);
-    anyPointerMedia.addEventListener?.('change', updateTouchUi);
-    hoverMedia.addEventListener?.('change', updateTouchUi);
+    pointerMedia.addEventListener?.("change", updateTouchUi);
+    anyPointerMedia.addEventListener?.("change", updateTouchUi);
+    hoverMedia.addEventListener?.("change", updateTouchUi);
 
     return () => {
-      pointerMedia.removeEventListener?.('change', updateTouchUi);
-      anyPointerMedia.removeEventListener?.('change', updateTouchUi);
-      hoverMedia.removeEventListener?.('change', updateTouchUi);
+      pointerMedia.removeEventListener?.("change", updateTouchUi);
+      anyPointerMedia.removeEventListener?.("change", updateTouchUi);
+      hoverMedia.removeEventListener?.("change", updateTouchUi);
     };
   }, []);
 
@@ -78,12 +79,12 @@ export default function App() {
       <div className="pointer-events-none absolute inset-0 z-20">
         <section className="pointer-events-auto absolute left-4 top-4 max-w-xs rounded-2xl border border-pub-brass/30 bg-[#1b1310]/78 px-4 py-3 shadow-panel backdrop-blur-sm sm:left-6 sm:top-6">
           <p className="font-display text-[11px] uppercase tracking-[0.35em] text-pub-brass">
-            The Lantern & Link
+            Mai Bar
           </p>
           <p className="mt-2 text-sm leading-6 text-pub-cream/80">
             {isTouchUi
-              ? 'Tap or hold anywhere to move. Walk up to a prompt to explore.'
-              : 'Walk the room. Press E when a prompt appears.'}
+              ? "Tap or hold anywhere to move. Walk up to a prompt to explore."
+              : "Walk the room. Press E when a prompt appears."}
           </p>
         </section>
 
@@ -97,9 +98,7 @@ export default function App() {
           interactable={nearbyInteractable}
           hidden={Boolean(activeSection)}
           isTouchUi={isTouchUi}
-          onActivate={(interactable) =>
-            emitOpenSection(interactable.sectionId)
-          }
+          onActivate={(interactable) => emitOpenSection(interactable.sectionId)}
         />
       </div>
       <SectionModal

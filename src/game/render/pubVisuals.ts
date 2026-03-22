@@ -14,6 +14,7 @@ const BACK_BAR_TEXTURE_KEY = 'pub-back-bar';
 const BAR_COUNTER_TEXTURE_KEY = 'pub-bar-counter-topdown';
 const STOOL_TEXTURE_KEY = 'pub-bar-stool';
 const BOOTH_TEXTURE_KEY = 'pub-booth-couch';
+const BOOTH_ROTATED_180_TEXTURE_KEY = 'pub-booth-couch-rotated-180';
 const RECT_TABLE_TEXTURE_KEY = 'pub-table-rect';
 const ROUND_TABLE_TEXTURE_KEY = 'pub-table-round';
 
@@ -58,6 +59,8 @@ function addFurnitureSprite(
   options?: {
     angle?: number;
     depth?: number;
+    flipX?: boolean;
+    flipY?: boolean;
     shadowAlpha?: number;
     shadowScaleX?: number;
     shadowScaleY?: number;
@@ -69,6 +72,8 @@ function addFurnitureSprite(
   const angle = options?.angle ?? 0;
   const yOffset = options?.yOffset ?? 0;
   const depth = options?.depth ?? FURNITURE_DEPTH;
+  const flipX = options?.flipX ?? false;
+  const flipY = options?.flipY ?? false;
   const widthPadding = options?.widthPadding ?? 0;
   const heightPadding = options?.heightPadding ?? 0;
   const isRotated = Math.abs(angle) % 180 === 90;
@@ -89,6 +94,7 @@ function addFurnitureSprite(
     .image(piece.x, piece.y + yOffset, textureKey)
     .setDisplaySize(displayWidth, displayHeight)
     .setAngle(angle)
+    .setFlip(flipX, flipY)
     .setDepth(depth);
 }
 
@@ -105,41 +111,19 @@ export interface AnimatedPhoneParts {
   ringRight: Phaser.GameObjects.Container;
 }
 
+export interface AnimatedJukeboxParts {
+  glow: Phaser.GameObjects.Ellipse;
+  marquee: Phaser.GameObjects.Container;
+  noteLeft: Phaser.GameObjects.Container;
+  noteRight: Phaser.GameObjects.Container;
+  sparkle: Phaser.GameObjects.Rectangle;
+}
+
 export interface FloatingResumeScrollParts {
   glow: Phaser.GameObjects.Ellipse;
   scroll: Phaser.GameObjects.Container;
   shadow: Phaser.GameObjects.Ellipse;
   sparkle: Phaser.GameObjects.Rectangle;
-}
-
-function drawBottleCluster(
-  scene: Phaser.Scene,
-  x: number,
-  y: number,
-  colors: number[],
-  scaleX: (value: number) => number,
-  scaleY: (value: number) => number,
-) {
-  const offsets = [-16, -4, 8, 20];
-  colors.forEach((color, index) => {
-    const offsetX = offsets[index] ?? index * 12;
-    addRect(
-      scene,
-      x + scaleX(offsetX),
-      y,
-      scaleX(8),
-      scaleY(18 + (index % 2) * 4),
-      color,
-    ).setDepth(DECOR_DEPTH + 0.45);
-    addRect(
-      scene,
-      x + scaleX(offsetX),
-      y - scaleY(11),
-      scaleX(4),
-      scaleY(4),
-      0xd9c89a,
-    ).setDepth(DECOR_DEPTH + 0.5);
-  });
 }
 
 export function drawPubShell(
@@ -199,8 +183,6 @@ export function drawPubShell(
   floorWear.fillEllipse(760, 610, 180, 90);
 
   floorWear.fillStyle(0x2a1913, 0.08);
-  floorWear.fillRect(0, 396, roomWidth, 10);
-  floorWear.fillRect(0, 744, roomWidth, 10);
 
   addRect(scene, roomWidth / 2, py(78), roomWidth, ph(156), 0x35584f).setDepth(BASE_DEPTH + 0.2);
   addRect(scene, roomWidth - px(56), roomHeight / 2, pw(112), roomHeight, 0x35584f).setDepth(BASE_DEPTH + 0.2);
@@ -210,10 +192,6 @@ export function drawPubShell(
   addRect(scene, roomWidth / 2, py(26), pw(712), ph(28), 0x251611).setDepth(BASE_DEPTH + 0.3);
   addRect(scene, px(308), py(26), pw(592), ph(28), 0x251611).setDepth(BASE_DEPTH + 0.3);
   addRect(scene, px(1378), py(26), pw(616), ph(28), 0x251611).setDepth(BASE_DEPTH + 0.3);
-  addRect(scene, px(26), roomHeight / 2, pw(28), ph(596), 0x251611).setDepth(BASE_DEPTH + 0.3);
-  addRect(scene, roomWidth - px(26), roomHeight / 2, pw(28), roomHeight - ph(24), 0x251611).setDepth(BASE_DEPTH + 0.3);
-  addRect(scene, px(314), roomHeight - py(26), pw(612), ph(28), 0x251611).setDepth(BASE_DEPTH + 0.3);
-  addRect(scene, px(1438), roomHeight - py(26), pw(408), ph(28), 0x251611).setDepth(BASE_DEPTH + 0.3);
 
   addRect(scene, px(836), py(66), pw(216), ph(116), 0x161110, 0.62).setDepth(BASE_DEPTH + 0.35);
   addRect(scene, px(836), py(116), pw(148), ph(10), 0xc79a58, 0.52).setDepth(BASE_DEPTH + 0.4);
@@ -225,19 +203,39 @@ export function drawPubShell(
 
 function drawBoothPiece(scene: Phaser.Scene, piece: FurnitureDefinition) {
   const useBoothSprite =
-    scene.textures.exists(BOOTH_TEXTURE_KEY) && piece.id.includes('booth-island');
+    scene.textures.exists(BOOTH_TEXTURE_KEY) &&
+    (
+      (piece.id.includes('booth') && !piece.id.includes('table')) ||
+      piece.id.includes('bench') ||
+      piece.id.startsWith('nook-booth-')
+    );
 
   if (useBoothSprite) {
     const vertical = piece.height > piece.width;
-    addFurnitureSprite(scene, BOOTH_TEXTURE_KEY, piece, {
+    const isNookBooth = piece.id.startsWith('nook-booth-');
+    const useRotatedBoothTexture = new Set([
+      'nook-booth-lower-curve',
+      'nook-booth-bottom-lower-curve',
+      'booth-island-a-bottom',
+      'booth-island-b-bottom',
+      'booth-island-c-bottom',
+    ]).has(piece.id);
+    addFurnitureSprite(
+      scene,
+      useRotatedBoothTexture
+        ? BOOTH_ROTATED_180_TEXTURE_KEY
+        : BOOTH_TEXTURE_KEY,
+      piece,
+      {
       angle: vertical ? 90 : 0,
-      yOffset: vertical ? -2 : -4,
-      widthPadding: vertical ? 18 : 20,
-      heightPadding: vertical ? 18 : 10,
+      yOffset: vertical ? -2 : isNookBooth ? -2 : -4,
+      widthPadding: vertical ? (isNookBooth ? 6 : 18) : isNookBooth ? 8 : 20,
+      heightPadding: vertical ? (isNookBooth ? 8 : 18) : isNookBooth ? 6 : 10,
       shadowScaleX: vertical ? 0.76 : 0.92,
       shadowScaleY: vertical ? 0.24 : 0.28,
       shadowAlpha: 0.16,
-    });
+      },
+    );
     return;
   }
 
@@ -541,7 +539,7 @@ export function drawFurniture(
     }
 
     if (piece.id.includes('table')) {
-      if (piece.id.includes('round-table')) {
+      if (piece.shape === 'ellipse' || piece.id.includes('round-table')) {
         drawRoundTable(scene, piece);
         return;
       }
@@ -550,7 +548,7 @@ export function drawFurniture(
       return;
     }
 
-    if (piece.id.includes('booth')) {
+    if (piece.id.includes('booth') || piece.id.includes('bench')) {
       drawBoothPiece(scene, piece);
       return;
     }
@@ -560,7 +558,7 @@ export function drawFurniture(
       return;
     }
 
-    if (piece.id === 'bar-counter') {
+    if (piece.id.includes('bar-counter')) {
       drawBarCounter(scene, piece, piece.width > piece.height);
       return;
     }
@@ -608,79 +606,6 @@ export function drawDecor(
   const pw = (value: number) => Math.round(value * scaleX);
   const ph = (value: number) => Math.round(value * scaleY);
 
-  for (const [x, y] of [
-    [132, 88],
-    [292, 88],
-    [486, 88],
-  ] as const) {
-    addEllipse(scene, px(x), py(y + 38), pw(120), ph(66), 0xe3b15f, 0.07).setDepth(DECOR_DEPTH - 2);
-    addRect(scene, px(x), py(y), pw(14), ph(14), 0xe0b35b).setDepth(DECOR_DEPTH);
-    addRect(scene, px(x), py(y + 18), pw(8), ph(24), 0x6d4a28).setDepth(DECOR_DEPTH);
-  }
-
-  for (const frame of [
-    [544, 62, 86, 54],
-    [656, 62, 124, 54],
-  ] as const) {
-    addRect(scene, px(frame[0]), py(frame[1]), pw(frame[2]), ph(frame[3]), 0x855631).setDepth(DECOR_DEPTH);
-    addRect(scene, px(frame[0]), py(frame[1]), pw(frame[2] - 10), ph(frame[3] - 10), 0x283229).setDepth(DECOR_DEPTH + 0.1);
-    addRect(scene, px(frame[0]), py(frame[1] - 4), pw(frame[2] - 18), ph(6), 0xd8b074).setDepth(DECOR_DEPTH + 0.2);
-  }
-
-  addRect(scene, px(1044), py(88), pw(424), ph(86), 0x23342d, 0.96).setDepth(DECOR_DEPTH - 0.1);
-  addRect(scene, px(1044), py(122), pw(452), ph(10), 0x8f6938, 0.92).setDepth(DECOR_DEPTH + 0.15);
-  addRect(scene, px(1044), py(58), pw(434), ph(8), 0x5f3e24, 0.96).setDepth(DECOR_DEPTH + 0.1);
-
-  for (const shelfX of [926, 1044, 1162] as const) {
-    addRect(scene, px(shelfX), py(82), pw(102), ph(46), 0x342117, 0.96).setDepth(DECOR_DEPTH + 0.2);
-    addRect(scene, px(shelfX), py(66), pw(110), ph(6), 0xa47943).setDepth(DECOR_DEPTH + 0.25);
-    addRect(scene, px(shelfX), py(98), pw(110), ph(6), 0xa47943).setDepth(DECOR_DEPTH + 0.25);
-    addRect(scene, px(shelfX), py(128), pw(110), ph(6), 0xa47943).setDepth(DECOR_DEPTH + 0.25);
-  }
-
-  addRect(scene, px(1044), py(86), pw(118), ph(52), 0x8e6a3f).setDepth(DECOR_DEPTH + 0.3);
-  addRect(scene, px(1044), py(86), pw(96), ph(36), 0x1c2724).setDepth(DECOR_DEPTH + 0.35);
-  addRect(scene, px(1044), py(60), pw(128), ph(8), 0xc9a15f).setDepth(DECOR_DEPTH + 0.3);
-
-  drawBottleCluster(
-    scene,
-    px(926),
-    py(88),
-    [0x6f8ab7, 0xc85c4d, 0xd2ab57, 0x8ab69a],
-    pw,
-    ph,
-  );
-  drawBottleCluster(
-    scene,
-    px(926),
-    py(118),
-    [0x7f9cc3, 0x8ab69a, 0xc85c4d, 0xd2ab57],
-    pw,
-    ph,
-  );
-  drawBottleCluster(
-    scene,
-    px(1162),
-    py(88),
-    [0x6f8ab7, 0x8ab69a, 0xd2ab57, 0xc85c4d],
-    pw,
-    ph,
-  );
-  drawBottleCluster(
-    scene,
-    px(1162),
-    py(118),
-    [0xc85c4d, 0xd2ab57, 0x6f8ab7, 0x8ab69a],
-    pw,
-    ph,
-  );
-
-  for (const lampX of [892, 1194] as const) {
-    addEllipse(scene, px(lampX), py(122), pw(96), ph(54), 0xe3b15f, 0.08).setDepth(DECOR_DEPTH - 1.5);
-    addRect(scene, px(lampX), py(70), pw(10), ph(10), 0xcaa15d).setDepth(DECOR_DEPTH + 0.35);
-    addRect(scene, px(lampX), py(98), pw(6), ph(26), 0x6d4a28).setDepth(DECOR_DEPTH + 0.35);
-  }
-
   addRect(scene, px(836), py(86), pw(70), ph(18), 0x1d1413).setDepth(DECOR_DEPTH);
   scene.add.text(px(836), py(86), 'HALL', {
     color: '#d8b074',
@@ -700,6 +625,7 @@ export function drawInteractables(
       'experience-ledger',
       'resume-scroll',
       'contact-phone',
+      'jukebox',
     ]);
 
     if (animatedPropIds.has(interactable.id)) {
@@ -848,6 +774,71 @@ export function createAnimatedPubPhone(
     handset,
     ringLeft,
     ringRight,
+  };
+}
+
+export function createAnimatedJukebox(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+): AnimatedJukeboxParts {
+  const glow = addEllipse(scene, x, y - 6, 88, 40, 0xf0c27b, 0.12)
+    .setDepth(FLOATING_ITEM_DEPTH - 1);
+
+  const marquee = addContainer(
+    scene,
+    x,
+    y - 18,
+    [
+      addRect(scene, 0, 0, 40, 12, 0xf4d983, 0.92),
+      addRect(scene, -12, 0, 6, 12, 0x8be0d8, 0.95),
+      addRect(scene, 0, 0, 6, 12, 0xf06b6b, 0.95),
+      addRect(scene, 12, 0, 6, 12, 0x8be0d8, 0.95),
+      addRect(scene, 0, -8, 30, 4, 0xfff5d6, 0.9),
+    ],
+    FLOATING_ITEM_DEPTH,
+  );
+
+  const noteLeft = addContainer(
+    scene,
+    x - 26,
+    y - 12,
+    [
+      addRect(scene, 0, -4, 4, 14, 0x8be0d8, 0.9),
+      addRect(scene, 5, -8, 4, 12, 0x8be0d8, 0.9),
+      addRect(scene, 3, -10, 12, 3, 0x8be0d8, 0.9),
+      addRect(scene, -4, 7, 8, 6, 0xf4d983, 0.95),
+      addRect(scene, 6, 3, 8, 6, 0xf4d983, 0.95),
+    ],
+    FLOATING_ITEM_DEPTH + 0.1,
+  );
+  noteLeft.setAlpha(0);
+
+  const noteRight = addContainer(
+    scene,
+    x + 26,
+    y - 8,
+    [
+      addRect(scene, 0, -4, 4, 14, 0xf06b6b, 0.9),
+      addRect(scene, 5, -8, 4, 12, 0xf06b6b, 0.9),
+      addRect(scene, 3, -10, 12, 3, 0xf06b6b, 0.9),
+      addRect(scene, -4, 7, 8, 6, 0xf4d983, 0.95),
+      addRect(scene, 6, 3, 8, 6, 0xf4d983, 0.95),
+    ],
+    FLOATING_ITEM_DEPTH + 0.1,
+  );
+  noteRight.setAlpha(0);
+
+  const sparkle = addRect(scene, x + 18, y - 28, 4, 4, 0xfff5d6, 0.9)
+    .setDepth(FLOATING_ITEM_DEPTH + 0.15)
+    .setAlpha(0.7);
+
+  return {
+    glow,
+    marquee,
+    noteLeft,
+    noteRight,
+    sparkle,
   };
 }
 

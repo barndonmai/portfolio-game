@@ -3,6 +3,7 @@ import backBarSprite from '../../assets/props/pub_back_bar.png';
 import barCounterTopdownSprite from '../../assets/props/pub_bar_counter_topdown.png';
 import barStoolSprite from '../../assets/props/pub_bar_stool.png';
 import boothCouchSprite from '../../assets/props/pub_booth_couch.png';
+import boothCouchRotated180Sprite from '../../assets/props/pub_booth_couch_rotated_180.png';
 import rectTableSprite from '../../assets/props/pub_table_rect.png';
 import roundTableSprite from '../../assets/props/pub_table_round.png';
 import floorTilesetSprite from '../../assets/tiles/pub_floor_tileset.png';
@@ -18,6 +19,7 @@ import type { Direction } from '../characters/directions';
 import type { CharacterDefinition } from '../characters/types';
 import { updateCharacterAnimation } from '../characters/updateCharacterAnimation';
 import {
+  createAnimatedJukebox,
   createAnimatedPubPhone,
   createFloatingCenterpiece,
   createFloatingResumeScroll,
@@ -44,7 +46,7 @@ const ANIMATION_DIRECTION_CHANGE_SPEED = 32;
 const VISUAL_POSITION_SNAP = 1;
 const TOUCH_MOVE_ARRIVAL_RADIUS = 14;
 const FLOATING_CENTERPIECE_X = 690;
-const FLOATING_CENTERPIECE_Y = 448;
+const FLOATING_CENTERPIECE_Y = 498;
 type PlayerHitbox = Phaser.GameObjects.Rectangle & {
   body: Phaser.Physics.Arcade.Body;
 };
@@ -79,6 +81,7 @@ export class PubScene extends Phaser.Scene {
     this.load.image('pub-bar-counter-topdown', barCounterTopdownSprite);
     this.load.image('pub-bar-stool', barStoolSprite);
     this.load.image('pub-booth-couch', boothCouchSprite);
+    this.load.image('pub-booth-couch-rotated-180', boothCouchRotated180Sprite);
     this.load.image('pub-table-rect', rectTableSprite);
     this.load.image('pub-table-round', roundTableSprite);
 
@@ -273,6 +276,85 @@ export class PubScene extends Phaser.Scene {
   }
 
   private addAnimatedProps() {
+    const jukeboxPiece = furniture.find((piece) => piece.id === 'jukebox');
+    if (jukeboxPiece) {
+      const { glow, marquee, noteLeft, noteRight, sparkle } =
+        createAnimatedJukebox(this, jukeboxPiece.x, jukeboxPiece.y);
+      this.add
+        .text(jukeboxPiece.x, jukeboxPiece.y + 58, 'Jukebox', {
+          color: '#f2e4c8',
+          fontFamily: 'monospace',
+          fontSize: '11px',
+        })
+        .setDepth(11.4)
+        .setOrigin(0.5);
+
+      this.tweens.add({
+        targets: glow,
+        alpha: 0.24,
+        scaleX: 1.16,
+        scaleY: 1.08,
+        duration: 900,
+        ease: 'Sine.InOut',
+        yoyo: true,
+        repeat: -1,
+      });
+
+      this.tweens.add({
+        targets: marquee,
+        y: jukeboxPiece.y - 22,
+        duration: 1000,
+        ease: 'Sine.InOut',
+        yoyo: true,
+        repeat: -1,
+      });
+
+      this.tweens.add({
+        targets: [noteLeft, noteRight],
+        alpha: 0.95,
+        scaleX: 1.18,
+        scaleY: 1.18,
+        duration: 320,
+        ease: 'Sine.Out',
+        yoyo: true,
+        repeat: -1,
+        repeatDelay: 1200,
+      });
+
+      this.tweens.add({
+        targets: noteLeft,
+        x: jukeboxPiece.x - 40,
+        y: jukeboxPiece.y - 32,
+        duration: 900,
+        ease: 'Sine.Out',
+        yoyo: true,
+        repeat: -1,
+        repeatDelay: 620,
+      });
+
+      this.tweens.add({
+        targets: noteRight,
+        x: jukeboxPiece.x + 42,
+        y: jukeboxPiece.y - 28,
+        duration: 980,
+        ease: 'Sine.Out',
+        yoyo: true,
+        repeat: -1,
+        repeatDelay: 620,
+      });
+
+      this.tweens.add({
+        targets: sparkle,
+        alpha: 0.2,
+        scaleX: 1.8,
+        scaleY: 1.8,
+        duration: 540,
+        ease: 'Sine.InOut',
+        yoyo: true,
+        repeat: -1,
+      });
+    }
+
     const phonePiece = furniture.find((piece) => piece.id === 'payphone');
     if (phonePiece) {
       const { handset, ringLeft, ringRight } = createAnimatedPubPhone(
@@ -327,7 +409,7 @@ export class PubScene extends Phaser.Scene {
       const { glow, scroll, shadow, sparkle } = createFloatingResumeScroll(
         this,
         resumePiece.x,
-        resumePiece.y - 26,
+        resumePiece.y,
       );
       this.add
         .text(resumePiece.x, resumePiece.y + 16, 'Resume', {
@@ -340,7 +422,7 @@ export class PubScene extends Phaser.Scene {
 
       this.tweens.add({
         targets: scroll,
-        y: resumePiece.y - 38,
+        y: resumePiece.y - 12,
         duration: 1700,
         ease: 'Sine.InOut',
         yoyo: true,
@@ -371,7 +453,7 @@ export class PubScene extends Phaser.Scene {
       this.tweens.add({
         targets: sparkle,
         alpha: 0.3,
-        y: resumePiece.y - 56,
+        y: resumePiece.y - 30,
         duration: 900,
         ease: 'Sine.InOut',
         yoyo: true,
