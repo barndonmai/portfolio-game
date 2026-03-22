@@ -3,6 +3,7 @@ import { GameCanvas } from './components/GameCanvas';
 import { InteractionPrompt } from './components/InteractionPrompt';
 import { SectionModal } from './components/SectionModal';
 import {
+  emitOpenSection,
   emitUiLock,
   onNearbyInteractable,
   onOpenSection,
@@ -95,6 +96,10 @@ export default function App() {
         <InteractionPrompt
           interactable={nearbyInteractable}
           hidden={Boolean(activeSection)}
+          isTouchUi={isTouchUi}
+          onActivate={(interactable) =>
+            emitOpenSection(interactable.sectionId)
+          }
         />
       </div>
       <SectionModal
