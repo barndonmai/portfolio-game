@@ -35,6 +35,31 @@ export interface InteractableDefinition {
   color: number;
 }
 
+export interface WallColliderDefinition {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export const wallColliders: WallColliderDefinition[] = [
+  {
+    id: 'top-wall',
+    x: (ROOM_WIDTH - 156) / 2,
+    y: 78,
+    width: ROOM_WIDTH - 156,
+    height: 156,
+  },
+  {
+    id: 'right-wall',
+    x: ROOM_WIDTH - 78,
+    y: ROOM_HEIGHT / 2,
+    width: 156,
+    height: ROOM_HEIGHT,
+  },
+];
+
 export const furniture: FurnitureDefinition[] = [
   {
     id: 'nook-booth-left',
@@ -302,7 +327,7 @@ export const furniture: FurnitureDefinition[] = [
   {
     id: 'booth-island-b-bottom',
     x: 548,
-    y: 680,
+    y: 712,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,
@@ -312,7 +337,7 @@ export const furniture: FurnitureDefinition[] = [
   {
     id: 'booth-island-b-table',
     x: 548,
-    y: 604,
+    y: 621,
     width: ROUND_TABLE_SIZE,
     height: ROUND_TABLE_SIZE,
     color: 0x7a4b28,
@@ -333,7 +358,7 @@ export const furniture: FurnitureDefinition[] = [
   {
     id: 'booth-island-c-bottom',
     x: 836,
-    y: 680,
+    y: 712,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,
@@ -343,7 +368,7 @@ export const furniture: FurnitureDefinition[] = [
   {
     id: 'booth-island-c-table',
     x: 836,
-    y: 604,
+    y: 621,
     width: ROUND_TABLE_SIZE,
     height: ROUND_TABLE_SIZE,
     color: 0x7a4b28,
@@ -353,8 +378,8 @@ export const furniture: FurnitureDefinition[] = [
   },
   {
     id: 'rect-table-mid-left-1',
-    x: 366,
-    y: 515,
+    x: 351,
+    y: 532,
     width: RECT_TABLE_WIDTH,
     height: RECT_TABLE_HEIGHT,
     color: 0x7a4b28,
@@ -363,8 +388,8 @@ export const furniture: FurnitureDefinition[] = [
   },
   {
     id: 'rect-table-mid-left-2',
-    x: 311,
-    y: 697,
+    x: 351,
+    y: 714,
     width: RECT_TABLE_WIDTH,
     height: RECT_TABLE_HEIGHT,
     color: 0x7a4b28,
@@ -394,7 +419,7 @@ export const furniture: FurnitureDefinition[] = [
   {
     id: 'payphone',
     x: 566,
-    y: 748,
+    y: 798,
     width: 34,
     height: 78,
     color: 0x48505a,
@@ -404,7 +429,7 @@ export const furniture: FurnitureDefinition[] = [
   {
     id: 'resume-stand',
     x: 820,
-    y: 748,
+    y: 798,
     width: 118,
     height: 58,
     color: 0x6f4a2d,
@@ -442,7 +467,7 @@ export const interactables: InteractableDefinition[] = [
     label: 'Resume',
     prompt: 'Press E to inspect',
     x: 820,
-    y: 748,
+    y: 798,
     width: 40,
     height: 32,
     color: 0xf3ead2,
@@ -453,7 +478,7 @@ export const interactables: InteractableDefinition[] = [
     label: 'Contact',
     prompt: 'Press E to call',
     x: 566,
-    y: 748,
+    y: 798,
     width: 26,
     height: 40,
     color: 0x9eb2c7,

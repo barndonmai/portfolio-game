@@ -1,22 +1,19 @@
-import Phaser from 'phaser';
-import type {
-  FurnitureDefinition,
-  InteractableDefinition,
-} from '../roomData';
+import Phaser from "phaser";
+import type { FurnitureDefinition, InteractableDefinition } from "../roomData";
 
 const BASE_DEPTH = 1;
 const FURNITURE_DEPTH = 4;
 const DECOR_DEPTH = 6;
 const INTERACTABLE_DEPTH = 8;
 const FLOATING_ITEM_DEPTH = 11;
-const FLOOR_TEXTURE_KEY = 'pub-floor-tiles';
-const BACK_BAR_TEXTURE_KEY = 'pub-back-bar';
-const BAR_COUNTER_TEXTURE_KEY = 'pub-bar-counter-topdown';
-const STOOL_TEXTURE_KEY = 'pub-bar-stool';
-const BOOTH_TEXTURE_KEY = 'pub-booth-couch';
-const BOOTH_ROTATED_180_TEXTURE_KEY = 'pub-booth-couch-rotated-180';
-const RECT_TABLE_TEXTURE_KEY = 'pub-table-rect';
-const ROUND_TABLE_TEXTURE_KEY = 'pub-table-round';
+const FLOOR_TEXTURE_KEY = "pub-floor-tiles";
+const BACK_BAR_TEXTURE_KEY = "pub-back-bar";
+const BAR_COUNTER_TEXTURE_KEY = "pub-bar-counter-topdown";
+const STOOL_TEXTURE_KEY = "pub-bar-stool";
+const BOOTH_TEXTURE_KEY = "pub-booth-couch";
+const BOOTH_ROTATED_180_TEXTURE_KEY = "pub-booth-couch-rotated-180";
+const RECT_TABLE_TEXTURE_KEY = "pub-table-rect";
+const ROUND_TABLE_TEXTURE_KEY = "pub-table-round";
 
 function addRect(
   scene: Phaser.Scene,
@@ -52,6 +49,33 @@ function addContainer(
   return scene.add.container(x, y, children).setDepth(depth);
 }
 
+function createBottleShelf(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  depth: number,
+) {
+  const bottleColors = [0x7794c7, 0xa3cdb7, 0xdfbf64, 0xcd6656];
+  const children: Phaser.GameObjects.GameObject[] = [
+    addRect(scene, 0, 0, 96, 54, 0x3b281e, 0.96),
+    addRect(scene, 0, -18, 112, 4, 0x5f3e23, 0.95),
+    addRect(scene, 0, 18, 112, 4, 0x5f3e23, 0.95),
+    addRect(scene, -34, 0, 4, 40, 0x7e5b32, 0.95),
+    addRect(scene, 34, 0, 4, 40, 0x7e5b32, 0.95),
+  ];
+
+  const rowYs = [-6, 16];
+  rowYs.forEach((rowY) => {
+    bottleColors.forEach((color, index) => {
+      const bottleX = -27 + index * 18;
+      children.push(addRect(scene, bottleX, rowY, 8, 18, color, 0.95));
+      children.push(addRect(scene, bottleX, rowY - 10, 2, 2, 0xf0dfb0, 0.95));
+    });
+  });
+
+  return addContainer(scene, x, y, children, depth);
+}
+
 function addFurnitureSprite(
   scene: Phaser.Scene,
   textureKey: string,
@@ -78,7 +102,8 @@ function addFurnitureSprite(
   const heightPadding = options?.heightPadding ?? 0;
   const isRotated = Math.abs(angle) % 180 === 90;
   const displayWidth = (isRotated ? piece.height : piece.width) + widthPadding;
-  const displayHeight = (isRotated ? piece.width : piece.height) + heightPadding;
+  const displayHeight =
+    (isRotated ? piece.width : piece.height) + heightPadding;
 
   addEllipse(
     scene,
@@ -137,9 +162,40 @@ export function drawPubShell(
   const py = (value: number) => Math.round(value * scaleY);
   const pw = (value: number) => Math.round(value * scaleX);
   const ph = (value: number) => Math.round(value * scaleY);
+  const topWallHeight = ph(156);
+  const innerTopWallHeight = ph(54);
+  const rightWallWidth = pw(156);
+  const innerRightWallWidth = innerTopWallHeight;
+  const topWallWidth = roomWidth - rightWallWidth;
+  const topWallCenterX = topWallWidth / 2;
+  const rightWallHeight = roomHeight;
+  const rightWallCenterY = roomHeight / 2;
+  const innerRightWallHeight = roomHeight - topWallHeight;
+  const innerRightWallCenterY = topWallHeight + innerRightWallHeight / 2;
+  const rightWallInnerCenterX =
+    roomWidth - rightWallWidth + innerRightWallWidth / 2;
+  const cornerFillCenterY = topWallHeight - innerTopWallHeight / 2;
+  const rightWallTrimWidth = pw(28);
+  const topTrimY = py(26);
+  const topTrimHeight = ph(28);
+  const rightTrimInset = topTrimY - ph(14);
+  const rightWallTrimCenterX =
+    roomWidth - rightTrimInset - rightWallTrimWidth / 2;
+  const topTrimEndX = roomWidth - rightTrimInset;
+  const topTrimWidth = topTrimEndX;
+  const topTrimCenterX = topTrimWidth / 2;
+  const rightWallTrimTop = topTrimY + topTrimHeight / 2;
+  const rightWallTrimHeight = roomHeight - rightWallTrimTop;
+  const rightWallTrimCenterY = rightWallTrimTop + rightWallTrimHeight / 2;
 
-  addRect(scene, roomWidth / 2, roomHeight / 2, roomWidth, roomHeight, 0x41281c)
-    .setDepth(BASE_DEPTH);
+  addRect(
+    scene,
+    roomWidth / 2,
+    roomHeight / 2,
+    roomWidth,
+    roomHeight,
+    0x41281c,
+  ).setDepth(BASE_DEPTH);
 
   if (scene.textures.exists(FLOOR_TEXTURE_KEY)) {
     const floorTexture = scene.add
@@ -184,41 +240,107 @@ export function drawPubShell(
 
   floorWear.fillStyle(0x2a1913, 0.08);
 
-  addRect(scene, roomWidth / 2, py(78), roomWidth, ph(156), 0x35584f).setDepth(BASE_DEPTH + 0.2);
-  addRect(scene, roomWidth - px(56), roomHeight / 2, pw(112), roomHeight, 0x35584f).setDepth(BASE_DEPTH + 0.2);
-  addRect(scene, roomWidth / 2, py(126), roomWidth, ph(54), 0x274038, 0.92).setDepth(BASE_DEPTH + 0.25);
-  addRect(scene, roomWidth - px(56), roomHeight / 2, pw(34), roomHeight, 0x274038, 0.82).setDepth(BASE_DEPTH + 0.25);
+  addRect(
+    scene,
+    topWallCenterX,
+    topWallHeight / 2,
+    topWallWidth,
+    topWallHeight,
+    0x35584f,
+  ).setDepth(BASE_DEPTH + 0.2);
+  addRect(
+    scene,
+    roomWidth - rightWallWidth / 2,
+    rightWallCenterY,
+    rightWallWidth,
+    rightWallHeight,
+    0x35584f,
+  ).setDepth(BASE_DEPTH + 0.2);
+  addRect(
+    scene,
+    topWallCenterX,
+    topWallHeight - innerTopWallHeight / 2,
+    topWallWidth,
+    innerTopWallHeight,
+    0x274038,
+    0.92,
+  ).setDepth(BASE_DEPTH + 0.25);
+  addRect(
+    scene,
+    rightWallInnerCenterX,
+    cornerFillCenterY,
+    innerRightWallWidth,
+    innerTopWallHeight,
+    0x274038,
+    0.92,
+  ).setDepth(BASE_DEPTH + 0.25);
+  addRect(
+    scene,
+    rightWallInnerCenterX,
+    innerRightWallCenterY,
+    innerRightWallWidth,
+    innerRightWallHeight,
+    0x274038,
+    0.92,
+  ).setDepth(BASE_DEPTH + 0.25);
 
-  addRect(scene, roomWidth / 2, py(26), pw(712), ph(28), 0x251611).setDepth(BASE_DEPTH + 0.3);
-  addRect(scene, px(308), py(26), pw(592), ph(28), 0x251611).setDepth(BASE_DEPTH + 0.3);
-  addRect(scene, px(1378), py(26), pw(616), ph(28), 0x251611).setDepth(BASE_DEPTH + 0.3);
+  addRect(scene, topTrimCenterX, topTrimY, topTrimWidth, topTrimHeight, 0x251611).setDepth(
+    BASE_DEPTH + 0.3,
+  );
+  addRect(
+    scene,
+    rightWallTrimCenterX,
+    rightWallTrimCenterY,
+    rightWallTrimWidth,
+    rightWallTrimHeight,
+    0x251611,
+  ).setDepth(BASE_DEPTH + 0.3);
 
-  addRect(scene, px(836), py(66), pw(216), ph(116), 0x161110, 0.62).setDepth(BASE_DEPTH + 0.35);
-  addRect(scene, px(836), py(116), pw(148), ph(10), 0xc79a58, 0.52).setDepth(BASE_DEPTH + 0.4);
-
-  addEllipse(scene, px(292), py(226), pw(424), ph(310), 0x000000, 0.14).setDepth(BASE_DEPTH + 0.05);
-  addEllipse(scene, px(934), py(756), pw(1060), ph(620), 0x6a1f1f, 0.08).setDepth(BASE_DEPTH + 0.05);
-  addEllipse(scene, px(1324), py(926), pw(428), ph(212), 0xd0a15f, 0.08).setDepth(BASE_DEPTH + 0.08);
+  addEllipse(
+    scene,
+    px(292),
+    py(226),
+    pw(424),
+    ph(310),
+    0x000000,
+    0.14,
+  ).setDepth(BASE_DEPTH + 0.05);
+  addEllipse(
+    scene,
+    px(934),
+    py(756),
+    pw(1060),
+    ph(620),
+    0x6a1f1f,
+    0.08,
+  ).setDepth(BASE_DEPTH + 0.05);
+  addEllipse(
+    scene,
+    px(1324),
+    py(926),
+    pw(428),
+    ph(212),
+    0xd0a15f,
+    0.08,
+  ).setDepth(BASE_DEPTH + 0.08);
 }
 
 function drawBoothPiece(scene: Phaser.Scene, piece: FurnitureDefinition) {
   const useBoothSprite =
     scene.textures.exists(BOOTH_TEXTURE_KEY) &&
-    (
-      (piece.id.includes('booth') && !piece.id.includes('table')) ||
-      piece.id.includes('bench') ||
-      piece.id.startsWith('nook-booth-')
-    );
+    ((piece.id.includes("booth") && !piece.id.includes("table")) ||
+      piece.id.includes("bench") ||
+      piece.id.startsWith("nook-booth-"));
 
   if (useBoothSprite) {
     const vertical = piece.height > piece.width;
-    const isNookBooth = piece.id.startsWith('nook-booth-');
+    const isNookBooth = piece.id.startsWith("nook-booth-");
     const useRotatedBoothTexture = new Set([
-      'nook-booth-lower-curve',
-      'nook-booth-bottom-lower-curve',
-      'booth-island-a-bottom',
-      'booth-island-b-bottom',
-      'booth-island-c-bottom',
+      "nook-booth-lower-curve",
+      "nook-booth-bottom-lower-curve",
+      "booth-island-a-bottom",
+      "booth-island-b-bottom",
+      "booth-island-c-bottom",
     ]).has(piece.id);
     addFurnitureSprite(
       scene,
@@ -227,13 +349,13 @@ function drawBoothPiece(scene: Phaser.Scene, piece: FurnitureDefinition) {
         : BOOTH_TEXTURE_KEY,
       piece,
       {
-      angle: vertical ? 90 : 0,
-      yOffset: vertical ? -2 : isNookBooth ? -2 : -4,
-      widthPadding: vertical ? (isNookBooth ? 6 : 18) : isNookBooth ? 8 : 20,
-      heightPadding: vertical ? (isNookBooth ? 8 : 18) : isNookBooth ? 6 : 10,
-      shadowScaleX: vertical ? 0.76 : 0.92,
-      shadowScaleY: vertical ? 0.24 : 0.28,
-      shadowAlpha: 0.16,
+        angle: vertical ? 90 : 0,
+        yOffset: vertical ? -2 : isNookBooth ? -2 : -4,
+        widthPadding: vertical ? (isNookBooth ? 6 : 18) : isNookBooth ? 8 : 20,
+        heightPadding: vertical ? (isNookBooth ? 8 : 18) : isNookBooth ? 6 : 10,
+        shadowScaleX: vertical ? 0.76 : 0.92,
+        shadowScaleY: vertical ? 0.24 : 0.28,
+        shadowAlpha: 0.16,
       },
     );
     return;
@@ -245,8 +367,23 @@ function drawBoothPiece(scene: Phaser.Scene, piece: FurnitureDefinition) {
   children.push(
     addRect(scene, 0, 8, piece.width + 10, piece.height + 10, 0x2b1815, 0.35),
     addRect(scene, 0, 0, piece.width, piece.height, 0x6e2322),
-    addRect(scene, 0, -piece.height * 0.14, piece.width - 10, piece.height * 0.28, 0x8b2f2b),
-    addRect(scene, 0, piece.height * 0.08, piece.width - 12, piece.height * 0.16, 0x9b4439, 0.9),
+    addRect(
+      scene,
+      0,
+      -piece.height * 0.14,
+      piece.width - 10,
+      piece.height * 0.28,
+      0x8b2f2b,
+    ),
+    addRect(
+      scene,
+      0,
+      piece.height * 0.08,
+      piece.width - 12,
+      piece.height * 0.16,
+      0x9b4439,
+      0.9,
+    ),
     addRect(scene, 0, piece.height * 0.2, piece.width - 8, 10, 0x3e1716),
     addRect(scene, 0, -piece.height * 0.34, piece.width - 18, 10, 0xd7a56a),
   );
@@ -297,15 +434,57 @@ function drawRectTable(scene: Phaser.Scene, piece: FurnitureDefinition) {
       0x000000,
       0.12,
     ),
-    addEllipse(scene, 0, -piece.height * 0.02, piece.width, piece.height * 0.62, 0x8f5835),
-    addEllipse(scene, 0, -piece.height * 0.08, piece.width * 0.86, piece.height * 0.38, 0xb8744b),
+    addEllipse(
+      scene,
+      0,
+      -piece.height * 0.02,
+      piece.width,
+      piece.height * 0.62,
+      0x8f5835,
+    ),
+    addEllipse(
+      scene,
+      0,
+      -piece.height * 0.08,
+      piece.width * 0.86,
+      piece.height * 0.38,
+      0xb8744b,
+    ),
     addRect(scene, 0, -piece.height * 0.22, piece.width * 0.76, 3, 0xe6b37d),
-    addRect(scene, -piece.width * 0.18, -piece.height * 0.06, 3, piece.height * 0.34, 0x7d452d),
+    addRect(
+      scene,
+      -piece.width * 0.18,
+      -piece.height * 0.06,
+      3,
+      piece.height * 0.34,
+      0x7d452d,
+    ),
     addRect(scene, 0, -piece.height * 0.02, 3, piece.height * 0.38, 0x7d452d),
-    addRect(scene, piece.width * 0.18, piece.height * 0.02, 3, piece.height * 0.3, 0x7d452d),
+    addRect(
+      scene,
+      piece.width * 0.18,
+      piece.height * 0.02,
+      3,
+      piece.height * 0.3,
+      0x7d452d,
+    ),
     addRect(scene, 0, piece.height * 0.32, 8, piece.height * 0.24, 0x5b371d),
-    addRect(scene, -piece.width * 0.16, piece.height * 0.48, 6, piece.height * 0.24, 0x7d452d),
-    addRect(scene, piece.width * 0.16, piece.height * 0.48, 6, piece.height * 0.24, 0x7d452d),
+    addRect(
+      scene,
+      -piece.width * 0.16,
+      piece.height * 0.48,
+      6,
+      piece.height * 0.24,
+      0x7d452d,
+    ),
+    addRect(
+      scene,
+      piece.width * 0.16,
+      piece.height * 0.48,
+      6,
+      piece.height * 0.24,
+      0x7d452d,
+    ),
     addEllipse(scene, 0, piece.height * 0.56, 24, 8, 0x3d2518),
   ];
 
@@ -332,22 +511,65 @@ function drawRoundTable(scene: Phaser.Scene, piece: FurnitureDefinition) {
   }
 
   const children: Phaser.GameObjects.GameObject[] = [
-    addEllipse(scene, 0, 18, piece.width * 0.68, piece.height * 0.22, 0x000000, 0.12),
+    addEllipse(
+      scene,
+      0,
+      18,
+      piece.width * 0.68,
+      piece.height * 0.22,
+      0x000000,
+      0.12,
+    ),
     addEllipse(scene, 0, -2, piece.width, piece.height * 0.6, 0x8d5736),
     addEllipse(scene, 0, -8, piece.width * 0.88, piece.height * 0.32, 0xb8744b),
-    addRect(scene, -piece.width * 0.24, -piece.height * 0.08, 3, piece.height * 0.26, 0x7d452d),
+    addRect(
+      scene,
+      -piece.width * 0.24,
+      -piece.height * 0.08,
+      3,
+      piece.height * 0.26,
+      0x7d452d,
+    ),
     addRect(scene, 0, -piece.height * 0.02, 3, piece.height * 0.3, 0x7d452d),
-    addRect(scene, piece.width * 0.24, piece.height * 0.04, 3, piece.height * 0.2, 0x7d452d),
+    addRect(
+      scene,
+      piece.width * 0.24,
+      piece.height * 0.04,
+      3,
+      piece.height * 0.2,
+      0x7d452d,
+    ),
     addRect(scene, 0, piece.height * 0.22, 8, piece.height * 0.3, 0x5b371d),
-    addRect(scene, -piece.width * 0.18, piece.height * 0.44, 6, piece.height * 0.26, 0x7d452d),
+    addRect(
+      scene,
+      -piece.width * 0.18,
+      piece.height * 0.44,
+      6,
+      piece.height * 0.26,
+      0x7d452d,
+    ),
     addRect(scene, 0, piece.height * 0.5, 6, piece.height * 0.3, 0x7d452d),
-    addRect(scene, piece.width * 0.18, piece.height * 0.44, 6, piece.height * 0.26, 0x7d452d),
+    addRect(
+      scene,
+      piece.width * 0.18,
+      piece.height * 0.44,
+      6,
+      piece.height * 0.26,
+      0x7d452d,
+    ),
     addEllipse(scene, 0, piece.height * 0.58, 22, 8, 0x3d2518),
   ];
 
   for (const stripeX of [-piece.width * 0.24, 0, piece.width * 0.24]) {
     children.push(
-      addRect(scene, stripeX, -piece.height * 0.06, 3, piece.height * 0.28, 0x7d452d),
+      addRect(
+        scene,
+        stripeX,
+        -piece.height * 0.06,
+        3,
+        piece.height * 0.28,
+        0x7d452d,
+      ),
     );
   }
 
@@ -404,8 +626,12 @@ function drawBarCounter(
   } else {
     for (let y = -piece.height / 2 + 28; y < piece.height / 2 - 12; y += 52) {
       children.push(addRect(scene, 0, y, piece.width - 16, 8, 0x7d4b29));
-      children.push(addRect(scene, -piece.width * 0.26, y + 16, 10, 24, 0xc59a61));
-      children.push(addRect(scene, piece.width * 0.12, y + 16, 10, 24, 0xc59a61));
+      children.push(
+        addRect(scene, -piece.width * 0.26, y + 16, 10, 24, 0xc59a61),
+      );
+      children.push(
+        addRect(scene, piece.width * 0.12, y + 16, 10, 24, 0xc59a61),
+      );
     }
   }
 
@@ -464,7 +690,15 @@ function drawStool(scene: Phaser.Scene, piece: FurnitureDefinition) {
   }
 
   addContainer(scene, piece.x, piece.y, [
-    addEllipse(scene, 0, 6, piece.width + 8, piece.height * 0.5, 0x000000, 0.14),
+    addEllipse(
+      scene,
+      0,
+      6,
+      piece.width + 8,
+      piece.height * 0.5,
+      0x000000,
+      0.14,
+    ),
     addEllipse(scene, 0, 0, piece.width, piece.height, 0x9e693f),
     addEllipse(scene, 0, -4, piece.width * 0.72, piece.height * 0.42, 0xc08953),
     addRect(scene, 0, 16, 6, 22, 0x5b371d),
@@ -484,8 +718,22 @@ function drawJukebox(scene: Phaser.Scene, piece: FurnitureDefinition) {
   addContainer(scene, piece.x, piece.y, [
     addRect(scene, 0, 8, piece.width + 10, piece.height + 10, 0x000000, 0.18),
     addRect(scene, 0, 0, piece.width, piece.height, 0x8d4526),
-    addRect(scene, 0, -piece.height * 0.18, piece.width - 10, piece.height * 0.34, 0xc7733b),
-    addRect(scene, 0, -piece.height * 0.24, piece.width * 0.52, piece.height * 0.16, 0xf2d16d),
+    addRect(
+      scene,
+      0,
+      -piece.height * 0.18,
+      piece.width - 10,
+      piece.height * 0.34,
+      0xc7733b,
+    ),
+    addRect(
+      scene,
+      0,
+      -piece.height * 0.24,
+      piece.width * 0.52,
+      piece.height * 0.16,
+      0xf2d16d,
+    ),
     addRect(scene, 0, 10, piece.width * 0.62, piece.height * 0.22, 0x3f2418),
     addRect(scene, 0, piece.height * 0.28, piece.width * 0.74, 12, 0xf0c27b),
   ]);
@@ -526,20 +774,20 @@ export function drawFurniture(
   furniture: FurnitureDefinition[],
 ) {
   furniture.forEach((piece) => {
-    if (piece.id === 'resume-stand') {
+    if (piece.id === "resume-stand") {
       return;
     }
 
     if (
-      piece.id === 'bar-top-return' ||
-      piece.id === 'back-bar' ||
-      piece.id === 'back-bar-shelf-top'
+      piece.id === "bar-top-return" ||
+      piece.id === "back-bar" ||
+      piece.id === "back-bar-shelf-top"
     ) {
       return;
     }
 
-    if (piece.id.includes('table')) {
-      if (piece.shape === 'ellipse' || piece.id.includes('round-table')) {
+    if (piece.id.includes("table")) {
+      if (piece.shape === "ellipse" || piece.id.includes("round-table")) {
         drawRoundTable(scene, piece);
         return;
       }
@@ -548,42 +796,42 @@ export function drawFurniture(
       return;
     }
 
-    if (piece.id.includes('booth') || piece.id.includes('bench')) {
+    if (piece.id.includes("booth") || piece.id.includes("bench")) {
       drawBoothPiece(scene, piece);
       return;
     }
 
-    if (piece.id.includes('stool')) {
+    if (piece.id.includes("stool")) {
       drawStool(scene, piece);
       return;
     }
 
-    if (piece.id.includes('bar-counter')) {
+    if (piece.id.includes("bar-counter")) {
       drawBarCounter(scene, piece, piece.width > piece.height);
       return;
     }
 
-    if (piece.id.includes('column')) {
+    if (piece.id.includes("column")) {
       drawColumn(scene, piece);
       return;
     }
 
-    if (piece.id.includes('jukebox')) {
+    if (piece.id.includes("jukebox")) {
       drawJukebox(scene, piece);
       return;
     }
 
-    if (piece.id.includes('phone')) {
+    if (piece.id.includes("phone")) {
       drawPhone(scene, piece);
       return;
     }
 
-    if (piece.id.includes('resume')) {
+    if (piece.id.includes("resume")) {
       drawResumeStand(scene, piece);
       return;
     }
 
-    if (piece.id.includes('board')) {
+    if (piece.id.includes("board")) {
       drawBoard(scene, piece);
       return;
     }
@@ -605,15 +853,33 @@ export function drawDecor(
   const py = (value: number) => Math.round(value * scaleY);
   const pw = (value: number) => Math.round(value * scaleX);
   const ph = (value: number) => Math.round(value * scaleY);
+  const backBarAccentDepth = FURNITURE_DEPTH - 0.2;
 
-  addRect(scene, px(836), py(86), pw(70), ph(18), 0x1d1413).setDepth(DECOR_DEPTH);
-  scene.add.text(px(836), py(86), 'HALL', {
-    color: '#d8b074',
-    fontFamily: 'monospace',
-    fontSize: '12px',
-  }).setDepth(DECOR_DEPTH + 0.2).setOrigin(0.5);
+  const leftBarCenterX = px(560);
+  const rightBarCenterX = px(1230);
 
-  addEllipse(scene, roomWidth / 2, roomHeight - py(68), pw(264), ph(44), 0xd2a05e, 0.08).setDepth(DECOR_DEPTH - 2);
+  createBottleShelf(scene, leftBarCenterX, py(64), backBarAccentDepth + 0.01);
+  createBottleShelf(scene, rightBarCenterX, py(64), backBarAccentDepth + 0.01);
+
+  addRect(scene, px(180), py(118), pw(170), ph(60), 0x5f4325).setDepth(
+    DECOR_DEPTH,
+  );
+  addRect(scene, px(180), py(118), pw(150), ph(44), 0x141c1b).setDepth(
+    DECOR_DEPTH + 0.1,
+  );
+  addRect(scene, px(180), py(152), pw(18), ph(12), 0x3a2a1a).setDepth(
+    DECOR_DEPTH - 0.05,
+  );
+
+  addEllipse(
+    scene,
+    roomWidth / 2,
+    roomHeight - py(68),
+    pw(264),
+    ph(44),
+    0xd2a05e,
+    0.08,
+  ).setDepth(DECOR_DEPTH - 2);
 }
 
 export function drawInteractables(
@@ -622,10 +888,10 @@ export function drawInteractables(
 ) {
   interactables.forEach((interactable) => {
     const animatedPropIds = new Set([
-      'experience-ledger',
-      'resume-scroll',
-      'contact-phone',
-      'jukebox',
+      "experience-ledger",
+      "resume-scroll",
+      "contact-phone",
+      "jukebox",
     ]);
 
     if (animatedPropIds.has(interactable.id)) {
@@ -661,16 +927,17 @@ export function drawInteractables(
       0.7,
     ).setDepth(INTERACTABLE_DEPTH + 0.1);
 
-    scene.add.text(
-      interactable.x,
-      interactable.y + interactable.height / 2 + 14,
-      interactable.label,
-      {
-        color: '#f2e4c8',
-        fontFamily: 'monospace',
-        fontSize: '10px',
-      },
-    )
+    scene.add
+      .text(
+        interactable.x,
+        interactable.y + interactable.height / 2 + 14,
+        interactable.label,
+        {
+          color: "#f2e4c8",
+          fontFamily: "monospace",
+          fontSize: "10px",
+        },
+      )
       .setDepth(INTERACTABLE_DEPTH + 0.2)
       .setOrigin(0.5);
   });
@@ -681,11 +948,13 @@ export function createFloatingCenterpiece(
   x: number,
   y: number,
 ): FloatingCenterpieceParts {
-  const shadow = addEllipse(scene, x, y + 26, 72, 22, 0x000000, 0.18)
-    .setDepth(FURNITURE_DEPTH - 0.5);
+  const shadow = addEllipse(scene, x, y + 26, 72, 22, 0x000000, 0.18).setDepth(
+    FURNITURE_DEPTH - 0.5,
+  );
 
-  const glow = addEllipse(scene, x, y + 10, 74, 42, 0xdcb56a, 0.12)
-    .setDepth(FLOATING_ITEM_DEPTH - 1);
+  const glow = addEllipse(scene, x, y + 10, 74, 42, 0xdcb56a, 0.12).setDepth(
+    FLOATING_ITEM_DEPTH - 1,
+  );
 
   const root = addContainer(
     scene,
@@ -782,8 +1051,9 @@ export function createAnimatedJukebox(
   x: number,
   y: number,
 ): AnimatedJukeboxParts {
-  const glow = addEllipse(scene, x, y - 6, 88, 40, 0xf0c27b, 0.12)
-    .setDepth(FLOATING_ITEM_DEPTH - 1);
+  const glow = addEllipse(scene, x, y - 6, 88, 40, 0xf0c27b, 0.12).setDepth(
+    FLOATING_ITEM_DEPTH - 1,
+  );
 
   const marquee = addContainer(
     scene,
@@ -847,10 +1117,12 @@ export function createFloatingResumeScroll(
   x: number,
   y: number,
 ): FloatingResumeScrollParts {
-  const shadow = addEllipse(scene, x, y + 8, 56, 16, 0x000000, 0.14)
-    .setDepth(FLOATING_ITEM_DEPTH - 2);
-  const glow = addEllipse(scene, x, y - 10, 62, 24, 0xe8d28d, 0.12)
-    .setDepth(FLOATING_ITEM_DEPTH - 1);
+  const shadow = addEllipse(scene, x, y + 8, 56, 16, 0x000000, 0.14).setDepth(
+    FLOATING_ITEM_DEPTH - 2,
+  );
+  const glow = addEllipse(scene, x, y - 10, 62, 24, 0xe8d28d, 0.12).setDepth(
+    FLOATING_ITEM_DEPTH - 1,
+  );
 
   const scroll = addContainer(
     scene,
@@ -868,8 +1140,9 @@ export function createFloatingResumeScroll(
     FLOATING_ITEM_DEPTH,
   );
 
-  const sparkle = addRect(scene, x + 20, y - 22, 4, 4, 0x8be0d8)
-    .setDepth(FLOATING_ITEM_DEPTH + 0.1);
+  const sparkle = addRect(scene, x + 20, y - 22, 4, 4, 0x8be0d8).setDepth(
+    FLOATING_ITEM_DEPTH + 0.1,
+  );
 
   return {
     glow,

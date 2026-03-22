@@ -37,6 +37,7 @@ import {
   ROOM_HEIGHT,
   ROOM_WIDTH,
   type InteractableDefinition,
+  wallColliders,
 } from '../roomData';
 
 const CAMERA_FOLLOW_LERP = 0.16;
@@ -520,20 +521,21 @@ export class PubScene extends Phaser.Scene {
     this.player.body.setCollideWorldBounds(true);
     this.player.body.setMaxVelocity(PLAYER_SPEED, PLAYER_SPEED);
 
-    furniture
-      .filter((piece) => piece.collides)
-      .forEach((piece) => {
-        const collider = this.add.rectangle(
-          piece.x,
-          piece.y,
-          piece.width,
-          piece.height,
-          0x000000,
-          0,
-        );
-        this.physics.add.existing(collider, true);
-        this.physics.add.collider(this.player, collider);
-      });
+    [
+      ...furniture.filter((piece) => piece.collides),
+      ...wallColliders,
+    ].forEach((piece) => {
+      const collider = this.add.rectangle(
+        piece.x,
+        piece.y,
+        piece.width,
+        piece.height,
+        0x000000,
+        0,
+      );
+      this.physics.add.existing(collider, true);
+      this.physics.add.collider(this.player, collider);
+    });
 
     this.currentAnimationKey = `${key}-idle-${this.playerFacing}`;
     this.playerSprite.play(this.currentAnimationKey);
