@@ -92,11 +92,21 @@ export class PubScene extends Phaser.Scene {
     this.createPlayer();
     this.setupInput();
     this.setupVirtualJoystick();
+    this.input.on(
+      Phaser.Input.Events.POINTER_DOWN,
+      this.handlePointerDownForVirtualJoystick,
+      this,
+    );
     this.subscribeToUiLock();
     this.setupCamera();
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, this.handleResize, this);
+      this.input.off(
+        Phaser.Input.Events.POINTER_DOWN,
+        this.handlePointerDownForVirtualJoystick,
+        this,
+      );
       this.unsubscribeUiLock?.();
       this.virtualJoystick?.destroy();
       emitNearbyInteractable(null);
@@ -318,13 +328,30 @@ export class PubScene extends Phaser.Scene {
     this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
   }
 
-  private setupVirtualJoystick() {
-    if (!VirtualJoystick.shouldEnable(this)) {
+  private setupVirtualJoystick(force = false) {
+    if (
+      this.virtualJoystick ||
+      (!force && !VirtualJoystick.shouldEnable(this))
+    ) {
       return;
     }
 
     this.input.addPointer(1);
     this.virtualJoystick = new VirtualJoystick(this);
+  }
+
+  private handlePointerDownForVirtualJoystick(
+    pointer: Phaser.Input.Pointer,
+  ) {
+    if (this.virtualJoystick) {
+      return;
+    }
+
+    if (!this.isTouchLikePointer(pointer)) {
+      return;
+    }
+
+    this.setupVirtualJoystick(true);
   }
 
   private setupCamera() {
@@ -413,6 +440,22 @@ export class PubScene extends Phaser.Scene {
     ) {
       this.player.body.setVelocity(targetVelocityX, targetVelocityY);
     }
+  }
+
+  private isTouchLikePointer(pointer: Phaser.Input.Pointer) {
+    const event = pointer.event as
+      | PointerEvent
+      | TouchEvent
+      | MouseEvent
+      | undefined;
+    const pointerType =
+      event && 'pointerType' in event ? event.pointerType : undefined;
+
+    return (
+      pointer.wasTouch ||
+      pointerType === 'touch' ||
+      pointerType === 'pen'
+    );
   }
 
   private updatePlayerAnimation() {
