@@ -3,6 +3,8 @@ import { FLOATING_ITEM_DEPTH } from '../../config/depth';
 import { addContainer, addRect } from '../primitives';
 import type { AnimatedPhoneParts } from './types';
 
+const LABEL_DEPTH = 11.4;
+
 export function createAnimatedPubPhone(
   scene: Phaser.Scene,
   x: number,
@@ -46,4 +48,54 @@ export function createAnimatedPubPhone(
   ringRight.setAlpha(0);
 
   return { handset, ringLeft, ringRight };
+}
+
+export function addAnimatedPhoneProp(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  labelText = 'Contact',
+) {
+  const { handset, ringLeft, ringRight } = createAnimatedPubPhone(scene, x, y);
+
+  scene.add
+    .text(x, y + 40, labelText, {
+      color: '#f2e4c8',
+      fontFamily: 'monospace',
+      fontSize: '11px',
+    })
+    .setDepth(LABEL_DEPTH)
+    .setOrigin(0.5);
+
+  scene.tweens.add({
+    targets: handset,
+    angle: -8,
+    duration: 130,
+    ease: 'Sine.InOut',
+    yoyo: true,
+    repeat: -1,
+    repeatDelay: 1800,
+  });
+
+  scene.tweens.add({
+    targets: handset,
+    y: y - 24,
+    duration: 130,
+    ease: 'Quad.Out',
+    yoyo: true,
+    repeat: -1,
+    repeatDelay: 1800,
+  });
+
+  scene.tweens.add({
+    targets: [ringLeft, ringRight],
+    alpha: 0.9,
+    scaleX: 1.28,
+    scaleY: 1.28,
+    duration: 180,
+    ease: 'Sine.Out',
+    yoyo: true,
+    repeat: -1,
+    repeatDelay: 1750,
+  });
 }

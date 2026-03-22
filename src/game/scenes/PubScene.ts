@@ -29,10 +29,10 @@ import {
   STOOL_TEXTURE_KEY,
 } from '../room/config/textureKeys';
 import {
-  createAnimatedJukebox,
-  createAnimatedPubPhone,
-  createFloatingCenterpiece,
-  createFloatingResumeScroll,
+  addAnimatedFloatingCenterpiece,
+  addAnimatedJukeboxProp,
+  addAnimatedPhoneProp,
+  addAnimatedResumeScrollProp,
   drawDecor,
   drawFurniture,
   drawInteractables,
@@ -216,260 +216,27 @@ export class PubScene extends Phaser.Scene {
   }
 
   private addFloatingCenterpiece() {
-    const { glow, root, shadow, sparkles } = createFloatingCenterpiece(
+    addAnimatedFloatingCenterpiece(
       this,
       FLOATING_CENTERPIECE_X,
       FLOATING_CENTERPIECE_Y,
     );
-    const label = this.add
-      .text(
-        FLOATING_CENTERPIECE_X,
-        FLOATING_CENTERPIECE_Y + 34,
-        'Experience',
-        {
-          color: '#f2e4c8',
-          fontFamily: 'monospace',
-          fontSize: '11px',
-        },
-      )
-      .setDepth(11.4)
-      .setOrigin(0.5);
-
-    this.tweens.add({
-      targets: root,
-      y: FLOATING_CENTERPIECE_Y - 12,
-      duration: 1800,
-      ease: 'Sine.InOut',
-      yoyo: true,
-      repeat: -1,
-    });
-
-    this.tweens.add({
-      targets: label,
-      y: FLOATING_CENTERPIECE_Y + 22,
-      duration: 1800,
-      ease: 'Sine.InOut',
-      yoyo: true,
-      repeat: -1,
-    });
-
-    this.tweens.add({
-      targets: sparkles,
-      y: FLOATING_CENTERPIECE_Y - 8,
-      alpha: 0.35,
-      duration: 1200,
-      ease: 'Sine.InOut',
-      yoyo: true,
-      repeat: -1,
-    });
-
-    this.tweens.add({
-      targets: glow,
-      scaleX: 1.18,
-      scaleY: 1.12,
-      alpha: 0.2,
-      duration: 1500,
-      ease: 'Sine.InOut',
-      yoyo: true,
-      repeat: -1,
-    });
-
-    this.tweens.add({
-      targets: shadow,
-      scaleX: 0.82,
-      scaleY: 0.78,
-      alpha: 0.1,
-      duration: 1800,
-      ease: 'Sine.InOut',
-      yoyo: true,
-      repeat: -1,
-    });
   }
 
   private addAnimatedProps() {
     const jukeboxPiece = furniture.find((piece) => piece.id === 'jukebox');
     if (jukeboxPiece) {
-      const { glow, marquee, noteLeft, noteRight, sparkle } =
-        createAnimatedJukebox(this, jukeboxPiece.x, jukeboxPiece.y);
-      this.add
-        .text(jukeboxPiece.x, jukeboxPiece.y + 58, 'Jukebox', {
-          color: '#f2e4c8',
-          fontFamily: 'monospace',
-          fontSize: '11px',
-        })
-        .setDepth(11.4)
-        .setOrigin(0.5);
-
-      this.tweens.add({
-        targets: glow,
-        alpha: 0.24,
-        scaleX: 1.16,
-        scaleY: 1.08,
-        duration: 900,
-        ease: 'Sine.InOut',
-        yoyo: true,
-        repeat: -1,
-      });
-
-      this.tweens.add({
-        targets: marquee,
-        y: jukeboxPiece.y - 22,
-        duration: 1000,
-        ease: 'Sine.InOut',
-        yoyo: true,
-        repeat: -1,
-      });
-
-      this.tweens.add({
-        targets: [noteLeft, noteRight],
-        alpha: 0.95,
-        scaleX: 1.18,
-        scaleY: 1.18,
-        duration: 320,
-        ease: 'Sine.Out',
-        yoyo: true,
-        repeat: -1,
-        repeatDelay: 1200,
-      });
-
-      this.tweens.add({
-        targets: noteLeft,
-        x: jukeboxPiece.x - 40,
-        y: jukeboxPiece.y - 32,
-        duration: 900,
-        ease: 'Sine.Out',
-        yoyo: true,
-        repeat: -1,
-        repeatDelay: 620,
-      });
-
-      this.tweens.add({
-        targets: noteRight,
-        x: jukeboxPiece.x + 42,
-        y: jukeboxPiece.y - 28,
-        duration: 980,
-        ease: 'Sine.Out',
-        yoyo: true,
-        repeat: -1,
-        repeatDelay: 620,
-      });
-
-      this.tweens.add({
-        targets: sparkle,
-        alpha: 0.2,
-        scaleX: 1.8,
-        scaleY: 1.8,
-        duration: 540,
-        ease: 'Sine.InOut',
-        yoyo: true,
-        repeat: -1,
-      });
+      addAnimatedJukeboxProp(this, jukeboxPiece.x, jukeboxPiece.y);
     }
 
     const phonePiece = furniture.find((piece) => piece.id === 'payphone');
     if (phonePiece) {
-      const { handset, ringLeft, ringRight } = createAnimatedPubPhone(
-        this,
-        phonePiece.x,
-        phonePiece.y,
-      );
-      this.add
-        .text(phonePiece.x, phonePiece.y + 40, 'Contact', {
-          color: '#f2e4c8',
-          fontFamily: 'monospace',
-          fontSize: '11px',
-        })
-        .setDepth(11.4)
-        .setOrigin(0.5);
-
-      this.tweens.add({
-        targets: handset,
-        angle: -8,
-        duration: 130,
-        ease: 'Sine.InOut',
-        yoyo: true,
-        repeat: -1,
-        repeatDelay: 1800,
-      });
-
-      this.tweens.add({
-        targets: handset,
-        y: phonePiece.y - 24,
-        duration: 130,
-        ease: 'Quad.Out',
-        yoyo: true,
-        repeat: -1,
-        repeatDelay: 1800,
-      });
-
-      this.tweens.add({
-        targets: [ringLeft, ringRight],
-        alpha: 0.9,
-        scaleX: 1.28,
-        scaleY: 1.28,
-        duration: 180,
-        ease: 'Sine.Out',
-        yoyo: true,
-        repeat: -1,
-        repeatDelay: 1750,
-      });
+      addAnimatedPhoneProp(this, phonePiece.x, phonePiece.y);
     }
 
     const resumePiece = furniture.find((piece) => piece.id === 'resume-stand');
     if (resumePiece) {
-      const { glow, scroll, shadow, sparkle } = createFloatingResumeScroll(
-        this,
-        resumePiece.x,
-        resumePiece.y,
-      );
-      this.add
-        .text(resumePiece.x, resumePiece.y + 16, 'Resume', {
-          color: '#f2e4c8',
-          fontFamily: 'monospace',
-          fontSize: '11px',
-        })
-        .setDepth(11.4)
-        .setOrigin(0.5);
-
-      this.tweens.add({
-        targets: scroll,
-        y: resumePiece.y - 12,
-        duration: 1700,
-        ease: 'Sine.InOut',
-        yoyo: true,
-        repeat: -1,
-      });
-
-      this.tweens.add({
-        targets: glow,
-        alpha: 0.2,
-        scaleX: 1.12,
-        scaleY: 1.08,
-        duration: 1500,
-        ease: 'Sine.InOut',
-        yoyo: true,
-        repeat: -1,
-      });
-
-      this.tweens.add({
-        targets: shadow,
-        alpha: 0.08,
-        scaleX: 0.82,
-        duration: 1700,
-        ease: 'Sine.InOut',
-        yoyo: true,
-        repeat: -1,
-      });
-
-      this.tweens.add({
-        targets: sparkle,
-        alpha: 0.3,
-        y: resumePiece.y - 30,
-        duration: 900,
-        ease: 'Sine.InOut',
-        yoyo: true,
-        repeat: -1,
-      });
+      addAnimatedResumeScrollProp(this, resumePiece.x, resumePiece.y);
     }
   }
 

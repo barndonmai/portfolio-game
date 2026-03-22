@@ -3,6 +3,8 @@ import { FLOATING_ITEM_DEPTH } from '../../config/depth';
 import { addContainer, addEllipse, addRect } from '../primitives';
 import type { AnimatedJukeboxParts } from './types';
 
+const LABEL_DEPTH = 11.4;
+
 export function createAnimatedJukebox(
   scene: Phaser.Scene,
   x: number,
@@ -57,4 +59,91 @@ export function createAnimatedJukebox(
     .setAlpha(0.7);
 
   return { glow, marquee, noteLeft, noteRight, sparkle };
+}
+
+export function addAnimatedJukeboxProp(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  labelText = 'Jukebox',
+) {
+  const { glow, marquee, noteLeft, noteRight, sparkle } = createAnimatedJukebox(
+    scene,
+    x,
+    y,
+  );
+
+  scene.add
+    .text(x, y + 58, labelText, {
+      color: '#f2e4c8',
+      fontFamily: 'monospace',
+      fontSize: '11px',
+    })
+    .setDepth(LABEL_DEPTH)
+    .setOrigin(0.5);
+
+  scene.tweens.add({
+    targets: glow,
+    alpha: 0.24,
+    scaleX: 1.16,
+    scaleY: 1.08,
+    duration: 900,
+    ease: 'Sine.InOut',
+    yoyo: true,
+    repeat: -1,
+  });
+
+  scene.tweens.add({
+    targets: marquee,
+    y: y - 22,
+    duration: 1000,
+    ease: 'Sine.InOut',
+    yoyo: true,
+    repeat: -1,
+  });
+
+  scene.tweens.add({
+    targets: [noteLeft, noteRight],
+    alpha: 0.95,
+    scaleX: 1.18,
+    scaleY: 1.18,
+    duration: 320,
+    ease: 'Sine.Out',
+    yoyo: true,
+    repeat: -1,
+    repeatDelay: 1200,
+  });
+
+  scene.tweens.add({
+    targets: noteLeft,
+    x: x - 40,
+    y: y - 32,
+    duration: 900,
+    ease: 'Sine.Out',
+    yoyo: true,
+    repeat: -1,
+    repeatDelay: 620,
+  });
+
+  scene.tweens.add({
+    targets: noteRight,
+    x: x + 42,
+    y: y - 28,
+    duration: 980,
+    ease: 'Sine.Out',
+    yoyo: true,
+    repeat: -1,
+    repeatDelay: 620,
+  });
+
+  scene.tweens.add({
+    targets: sparkle,
+    alpha: 0.2,
+    scaleX: 1.8,
+    scaleY: 1.8,
+    duration: 540,
+    ease: 'Sine.InOut',
+    yoyo: true,
+    repeat: -1,
+  });
 }

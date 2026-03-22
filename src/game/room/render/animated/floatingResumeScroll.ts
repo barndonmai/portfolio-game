@@ -3,6 +3,8 @@ import { FLOATING_ITEM_DEPTH } from '../../config/depth';
 import { addContainer, addEllipse, addRect } from '../primitives';
 import type { FloatingResumeScrollParts } from './types';
 
+const LABEL_DEPTH = 11.4;
+
 export function createFloatingResumeScroll(
   scene: Phaser.Scene,
   x: number,
@@ -34,4 +36,66 @@ export function createFloatingResumeScroll(
   );
 
   return { glow, scroll, shadow, sparkle };
+}
+
+export function addAnimatedResumeScrollProp(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  labelText = 'Resume',
+) {
+  const { glow, scroll, shadow, sparkle } = createFloatingResumeScroll(
+    scene,
+    x,
+    y,
+  );
+
+  scene.add
+    .text(x, y + 16, labelText, {
+      color: '#f2e4c8',
+      fontFamily: 'monospace',
+      fontSize: '11px',
+    })
+    .setDepth(LABEL_DEPTH)
+    .setOrigin(0.5);
+
+  scene.tweens.add({
+    targets: scroll,
+    y: y - 12,
+    duration: 1700,
+    ease: 'Sine.InOut',
+    yoyo: true,
+    repeat: -1,
+  });
+
+  scene.tweens.add({
+    targets: glow,
+    alpha: 0.2,
+    scaleX: 1.12,
+    scaleY: 1.08,
+    duration: 1500,
+    ease: 'Sine.InOut',
+    yoyo: true,
+    repeat: -1,
+  });
+
+  scene.tweens.add({
+    targets: shadow,
+    alpha: 0.08,
+    scaleX: 0.82,
+    duration: 1700,
+    ease: 'Sine.InOut',
+    yoyo: true,
+    repeat: -1,
+  });
+
+  scene.tweens.add({
+    targets: sparkle,
+    alpha: 0.3,
+    y: y - 30,
+    duration: 900,
+    ease: 'Sine.InOut',
+    yoyo: true,
+    repeat: -1,
+  });
 }

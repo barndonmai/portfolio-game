@@ -3,6 +3,8 @@ import { FLOATING_ITEM_DEPTH, FURNITURE_DEPTH } from '../../config/depth';
 import { addContainer, addEllipse, addRect } from '../primitives';
 import type { FloatingCenterpieceParts } from './types';
 
+const LABEL_DEPTH = 11.4;
+
 export function createFloatingCenterpiece(
   scene: Phaser.Scene,
   x: number,
@@ -47,4 +49,71 @@ export function createFloatingCenterpiece(
   sparkles.setAlpha(0.75);
 
   return { glow, root, shadow, sparkles };
+}
+
+export function addAnimatedFloatingCenterpiece(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  labelText = 'Experience',
+) {
+  const { glow, root, shadow, sparkles } = createFloatingCenterpiece(scene, x, y);
+  const label = scene.add
+    .text(x, y + 34, labelText, {
+      color: '#f2e4c8',
+      fontFamily: 'monospace',
+      fontSize: '11px',
+    })
+    .setDepth(LABEL_DEPTH)
+    .setOrigin(0.5);
+
+  scene.tweens.add({
+    targets: root,
+    y: y - 12,
+    duration: 1800,
+    ease: 'Sine.InOut',
+    yoyo: true,
+    repeat: -1,
+  });
+
+  scene.tweens.add({
+    targets: label,
+    y: y + 22,
+    duration: 1800,
+    ease: 'Sine.InOut',
+    yoyo: true,
+    repeat: -1,
+  });
+
+  scene.tweens.add({
+    targets: sparkles,
+    y: y - 8,
+    alpha: 0.35,
+    duration: 1200,
+    ease: 'Sine.InOut',
+    yoyo: true,
+    repeat: -1,
+  });
+
+  scene.tweens.add({
+    targets: glow,
+    scaleX: 1.18,
+    scaleY: 1.12,
+    alpha: 0.2,
+    duration: 1500,
+    ease: 'Sine.InOut',
+    yoyo: true,
+    repeat: -1,
+  });
+
+  scene.tweens.add({
+    targets: shadow,
+    scaleX: 0.82,
+    scaleY: 0.78,
+    alpha: 0.1,
+    duration: 1800,
+    ease: 'Sine.InOut',
+    yoyo: true,
+    repeat: -1,
+  });
 }
