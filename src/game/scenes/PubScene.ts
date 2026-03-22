@@ -337,7 +337,11 @@ export class PubScene extends Phaser.Scene {
     }
 
     this.input.addPointer(1);
-    this.virtualJoystick = new VirtualJoystick(this);
+    this.virtualJoystick = new VirtualJoystick(this, {
+      align: 'right',
+      marginRight: 94,
+      marginBottom: 94,
+    });
   }
 
   private handlePointerDownForVirtualJoystick(

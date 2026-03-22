@@ -15,6 +15,7 @@ export default function App() {
     useState<PortfolioSectionId | null>(null);
   const [nearbyInteractable, setNearbyInteractable] =
     useState<InteractableSummary | null>(null);
+  const [isTouchUi, setIsTouchUi] = useState(false);
 
   useEffect(() => {
     const unsubscribeNearby = onNearbyInteractable((interactable) => {
@@ -35,6 +36,38 @@ export default function App() {
     emitUiLock(Boolean(activeSection));
   }, [activeSection]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const pointerMedia = window.matchMedia('(pointer: coarse)');
+    const anyPointerMedia = window.matchMedia('(any-pointer: coarse)');
+    const hoverMedia = window.matchMedia('(hover: none)');
+
+    const updateTouchUi = () => {
+      setIsTouchUi(
+        'ontouchstart' in window ||
+          navigator.maxTouchPoints > 0 ||
+          pointerMedia.matches ||
+          anyPointerMedia.matches ||
+          hoverMedia.matches,
+      );
+    };
+
+    updateTouchUi();
+
+    pointerMedia.addEventListener?.('change', updateTouchUi);
+    anyPointerMedia.addEventListener?.('change', updateTouchUi);
+    hoverMedia.addEventListener?.('change', updateTouchUi);
+
+    return () => {
+      pointerMedia.removeEventListener?.('change', updateTouchUi);
+      anyPointerMedia.removeEventListener?.('change', updateTouchUi);
+      hoverMedia.removeEventListener?.('change', updateTouchUi);
+    };
+  }, []);
+
   return (
     <main className="fixed inset-0 overflow-hidden text-pub-cream">
       <GameCanvas />
@@ -49,9 +82,11 @@ export default function App() {
           </p>
         </section>
 
-        <aside className="pointer-events-auto absolute bottom-4 right-4 rounded-2xl border border-pub-brass/30 bg-[#1b1310]/78 px-4 py-3 text-sm text-pub-cream/80 shadow-panel backdrop-blur-sm sm:bottom-6 sm:right-6">
-          WASD / Arrows to move
-        </aside>
+        {!isTouchUi ? (
+          <aside className="pointer-events-auto absolute bottom-4 right-4 rounded-2xl border border-pub-brass/30 bg-[#1b1310]/78 px-4 py-3 text-sm text-pub-cream/80 shadow-panel backdrop-blur-sm sm:bottom-6 sm:right-6">
+            WASD / Arrows to move
+          </aside>
+        ) : null}
 
         <InteractionPrompt
           interactable={nearbyInteractable}

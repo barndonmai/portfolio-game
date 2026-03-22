@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 
 const DEFAULT_RADIUS = 34;
 const DEFAULT_MARGIN_LEFT = 92;
+const DEFAULT_MARGIN_RIGHT = 92;
 const DEFAULT_MARGIN_BOTTOM = 92;
 const BASE_SIZE = 92;
 const INNER_BASE_SIZE = 62;
@@ -13,14 +14,18 @@ const ACTIVATION_PADDING = 18;
 interface VirtualJoystickOptions {
   radius?: number;
   marginLeft?: number;
+  marginRight?: number;
   marginBottom?: number;
+  align?: 'left' | 'right';
 }
 
 export class VirtualJoystick {
   private readonly scene: Phaser.Scene;
   private readonly radius: number;
   private readonly marginLeft: number;
+  private readonly marginRight: number;
   private readonly marginBottom: number;
+  private readonly align: 'left' | 'right';
   private readonly vector = new Phaser.Math.Vector2();
   private readonly center = new Phaser.Math.Vector2();
   private readonly root: Phaser.GameObjects.Container;
@@ -32,7 +37,9 @@ export class VirtualJoystick {
     this.scene = scene;
     this.radius = options.radius ?? DEFAULT_RADIUS;
     this.marginLeft = options.marginLeft ?? DEFAULT_MARGIN_LEFT;
+    this.marginRight = options.marginRight ?? DEFAULT_MARGIN_RIGHT;
     this.marginBottom = options.marginBottom ?? DEFAULT_MARGIN_BOTTOM;
+    this.align = options.align ?? 'left';
 
     const baseShadow = scene.add
       .rectangle(4, 4, BASE_SIZE, BASE_SIZE, 0x1b100d, 0.28)
@@ -147,7 +154,11 @@ export class VirtualJoystick {
   }
 
   private layout(width: number, height: number) {
-    this.center.set(this.marginLeft, height - this.marginBottom);
+    const x =
+      this.align === 'right'
+        ? width - this.marginRight
+        : this.marginLeft;
+    this.center.set(x, height - this.marginBottom);
     this.root.setPosition(this.center.x, this.center.y);
     this.hitZone.setPosition(this.center.x, this.center.y);
   }
