@@ -1,4 +1,11 @@
 import Phaser from 'phaser';
+import backBarSprite from '../../assets/props/pub_back_bar.png';
+import barCounterTopdownSprite from '../../assets/props/pub_bar_counter_topdown.png';
+import barStoolSprite from '../../assets/props/pub_bar_stool.png';
+import boothCouchSprite from '../../assets/props/pub_booth_couch.png';
+import rectTableSprite from '../../assets/props/pub_table_rect.png';
+import roundTableSprite from '../../assets/props/pub_table_round.png';
+import floorTilesetSprite from '../../assets/tiles/pub_floor_tileset.png';
 import {
   emitNearbyInteractable,
   emitOpenSection,
@@ -10,6 +17,15 @@ import { createCharacterAnimations } from '../characters/createCharacterAnimatio
 import type { Direction } from '../characters/directions';
 import type { CharacterDefinition } from '../characters/types';
 import { updateCharacterAnimation } from '../characters/updateCharacterAnimation';
+import {
+  createAnimatedPubPhone,
+  createFloatingCenterpiece,
+  createFloatingResumeScroll,
+  drawDecor,
+  drawFurniture,
+  drawInteractables,
+  drawPubShell,
+} from '../render/pubVisuals';
 import {
   furniture,
   interactables,
@@ -27,7 +43,8 @@ const ANIMATION_WALK_STOP_SPEED = 20;
 const ANIMATION_DIRECTION_CHANGE_SPEED = 32;
 const VISUAL_POSITION_SNAP = 1;
 const TOUCH_MOVE_ARRIVAL_RADIUS = 14;
-
+const FLOATING_CENTERPIECE_X = 690;
+const FLOATING_CENTERPIECE_Y = 448;
 type PlayerHitbox = Phaser.GameObjects.Rectangle & {
   body: Phaser.Physics.Arcade.Body;
 };
@@ -54,6 +71,17 @@ export class PubScene extends Phaser.Scene {
   }
 
   preload() {
+    this.load.spritesheet('pub-floor-tiles', floorTilesetSprite, {
+      frameWidth: 16,
+      frameHeight: 16,
+    });
+    this.load.image('pub-back-bar', backBarSprite);
+    this.load.image('pub-bar-counter-topdown', barCounterTopdownSprite);
+    this.load.image('pub-bar-stool', barStoolSprite);
+    this.load.image('pub-booth-couch', boothCouchSprite);
+    this.load.image('pub-table-rect', rectTableSprite);
+    this.load.image('pub-table-round', roundTableSprite);
+
     if (this.playerCharacter.sheet.kind === 'grid') {
       this.load.spritesheet(
         this.playerCharacter.sheet.textureKey,
@@ -90,6 +118,8 @@ export class PubScene extends Phaser.Scene {
     this.addFurniture();
     this.addDecor();
     this.addInteractables();
+    this.addFloatingCenterpiece();
+    this.addAnimatedProps();
     this.createPlayer();
     this.setupInput();
     this.input.on(
@@ -156,147 +186,198 @@ export class PubScene extends Phaser.Scene {
   }
 
   private drawRoomShell() {
-    this.add
-      .rectangle(
-        ROOM_WIDTH / 2,
-        ROOM_HEIGHT / 2,
-        ROOM_WIDTH,
-        ROOM_HEIGHT,
-        0x4a2f21,
-      )
-      .setStrokeStyle(18, 0x241712);
-
-    this.add.rectangle(ROOM_WIDTH / 2, 78, ROOM_WIDTH, 156, 0x35584f);
-    this.add.rectangle(ROOM_WIDTH - 88, ROOM_HEIGHT / 2, 176, ROOM_HEIGHT, 0x35584f);
-    this.add.rectangle(ROOM_WIDTH / 2, 92, ROOM_WIDTH, 52, 0x2b1a14, 0.85);
-    this.add.rectangle(ROOM_WIDTH - 88, ROOM_HEIGHT / 2, 54, ROOM_HEIGHT, 0x2b1a14, 0.72);
-
-    const floorLines = this.add.graphics();
-    floorLines.lineStyle(2, 0x6a442a, 0.28);
-    for (let x = 52; x < ROOM_WIDTH - 40; x += 36) {
-      floorLines.lineBetween(x, 40, x, ROOM_HEIGHT - 40);
-    }
-    for (let y = 52; y < ROOM_HEIGHT - 40; y += 36) {
-      floorLines.lineBetween(40, y, ROOM_WIDTH - 40, y);
-    }
-
-    this.add
-      .rectangle(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 720, 860, 0x6d2324, 0.1)
-      .setStrokeStyle(4, 0xc58c5a, 0.35);
-
-    this.add.rectangle(316, 156, 492, 308, 0x231614, 0.18);
-    this.add.rectangle(836, 66, 216, 116, 0x1d1413, 0.5);
-    this.add.rectangle(836, 118, 144, 12, 0xc58c5a, 0.45);
-    this.add.rectangle(ROOM_WIDTH / 2, 26, 712, 28, 0x2a1914);
-    this.add.rectangle(308, 26, 592, 28, 0x2a1914);
-    this.add.rectangle(1378, 26, 616, 28, 0x2a1914);
-    this.add.rectangle(26, ROOM_HEIGHT / 2, 28, 596, 0x2a1914);
-    this.add.rectangle(ROOM_WIDTH - 26, ROOM_HEIGHT / 2, 28, ROOM_HEIGHT - 24, 0x2a1914);
-    this.add.rectangle(314, ROOM_HEIGHT - 26, 612, 28, 0x2a1914);
-    this.add.rectangle(1438, ROOM_HEIGHT - 26, 408, 28, 0x2a1914);
-    this.add.rectangle(1048, ROOM_HEIGHT - 26, 220, 14, 0xc58c5a, 0.4);
+    drawPubShell(this, ROOM_WIDTH, ROOM_HEIGHT);
   }
 
   private addFurniture() {
-    furniture.forEach((piece) => {
-      const shape =
-        piece.shape === 'ellipse'
-          ? this.add.ellipse(
-              piece.x,
-              piece.y,
-              piece.width,
-              piece.height,
-              piece.color,
-            )
-          : this.add.rectangle(
-              piece.x,
-              piece.y,
-              piece.width,
-              piece.height,
-              piece.color,
-            );
-
-      shape.setStrokeStyle(3, piece.stroke);
-    });
+    drawFurniture(this, furniture);
   }
 
   private addDecor() {
-    const decor = this.add.graphics();
-    decor.fillStyle(0xe0b35b, 1);
-    decor.fillCircle(130, 88, 9);
-    decor.fillCircle(292, 88, 9);
-    decor.fillCircle(486, 88, 9);
-    decor.fillCircle(1040, 88, 9);
-    decor.fillCircle(1282, 88, 9);
-    decor.fillCircle(1514, 88, 9);
-
-    decor.fillStyle(0x8b5a2b, 1);
-    decor.fillRect(544, 62, 86, 54);
-    decor.fillRect(656, 62, 124, 54);
-    decor.fillRect(1228, 62, 102, 54);
-    decor.fillRect(1384, 62, 84, 54);
-
-    decor.lineStyle(3, 0xd8b074, 1);
-    decor.strokeRect(544, 62, 86, 54);
-    decor.strokeRect(656, 62, 124, 54);
-    decor.strokeRect(1228, 62, 102, 54);
-    decor.strokeRect(1384, 62, 84, 54);
-
-    decor.fillStyle(0x7a5a24, 1);
-    decor.fillRect(92, 910, 88, 18);
-    decor.fillRect(1186, 944, 126, 18);
-    decor.fillRect(1540, 570, 28, 176);
-    decor.fillStyle(0xc8a15f, 0.7);
-    decor.fillRect(1540, 620, 28, 10);
-    decor.fillRect(1540, 674, 28, 10);
-    decor.fillRect(1540, 728, 28, 10);
-    decor.fillRect(1540, 782, 28, 10);
-
-    this.add
-      .text(136, 906, 'MUSIC', {
-        color: '#f2e4c8',
-        fontFamily: 'monospace',
-        fontSize: '12px',
-      })
-      .setOrigin(0.5);
-
-    this.add
-      .text(1248, 940, 'FRAME', {
-        color: '#f2e4c8',
-        fontFamily: 'monospace',
-        fontSize: '12px',
-      })
-      .setOrigin(0.5);
-
-    this.add
-      .text(836, 86, 'HALL', {
-        color: '#d8b074',
-        fontFamily: 'monospace',
-        fontSize: '12px',
-      })
-      .setOrigin(0.5);
+    drawDecor(this, ROOM_WIDTH, ROOM_HEIGHT);
   }
 
   private addInteractables() {
-    interactables.forEach((interactable) => {
-      this.add
-        .rectangle(
-          interactable.x,
-          interactable.y,
-          interactable.width,
-          interactable.height,
-          interactable.color,
-        )
-        .setStrokeStyle(2, 0x2a1914);
+    drawInteractables(this, interactables);
+  }
 
-      this.add
-        .text(interactable.x, interactable.y + interactable.height / 2 + 14, interactable.label, {
+  private addFloatingCenterpiece() {
+    const { glow, root, shadow, sparkles } = createFloatingCenterpiece(
+      this,
+      FLOATING_CENTERPIECE_X,
+      FLOATING_CENTERPIECE_Y,
+    );
+    const label = this.add
+      .text(
+        FLOATING_CENTERPIECE_X,
+        FLOATING_CENTERPIECE_Y + 34,
+        'Experience',
+        {
           color: '#f2e4c8',
           fontFamily: 'monospace',
-          fontSize: '10px',
-        })
-        .setOrigin(0.5);
+          fontSize: '11px',
+        },
+      )
+      .setDepth(11.4)
+      .setOrigin(0.5);
+
+    this.tweens.add({
+      targets: root,
+      y: FLOATING_CENTERPIECE_Y - 12,
+      duration: 1800,
+      ease: 'Sine.InOut',
+      yoyo: true,
+      repeat: -1,
     });
+
+    this.tweens.add({
+      targets: label,
+      y: FLOATING_CENTERPIECE_Y + 22,
+      duration: 1800,
+      ease: 'Sine.InOut',
+      yoyo: true,
+      repeat: -1,
+    });
+
+    this.tweens.add({
+      targets: sparkles,
+      y: FLOATING_CENTERPIECE_Y - 8,
+      alpha: 0.35,
+      duration: 1200,
+      ease: 'Sine.InOut',
+      yoyo: true,
+      repeat: -1,
+    });
+
+    this.tweens.add({
+      targets: glow,
+      scaleX: 1.18,
+      scaleY: 1.12,
+      alpha: 0.2,
+      duration: 1500,
+      ease: 'Sine.InOut',
+      yoyo: true,
+      repeat: -1,
+    });
+
+    this.tweens.add({
+      targets: shadow,
+      scaleX: 0.82,
+      scaleY: 0.78,
+      alpha: 0.1,
+      duration: 1800,
+      ease: 'Sine.InOut',
+      yoyo: true,
+      repeat: -1,
+    });
+  }
+
+  private addAnimatedProps() {
+    const phonePiece = furniture.find((piece) => piece.id === 'payphone');
+    if (phonePiece) {
+      const { handset, ringLeft, ringRight } = createAnimatedPubPhone(
+        this,
+        phonePiece.x,
+        phonePiece.y,
+      );
+      this.add
+        .text(phonePiece.x, phonePiece.y + 40, 'Contact', {
+          color: '#f2e4c8',
+          fontFamily: 'monospace',
+          fontSize: '11px',
+        })
+        .setDepth(11.4)
+        .setOrigin(0.5);
+
+      this.tweens.add({
+        targets: handset,
+        angle: -8,
+        duration: 130,
+        ease: 'Sine.InOut',
+        yoyo: true,
+        repeat: -1,
+        repeatDelay: 1800,
+      });
+
+      this.tweens.add({
+        targets: handset,
+        y: phonePiece.y - 24,
+        duration: 130,
+        ease: 'Quad.Out',
+        yoyo: true,
+        repeat: -1,
+        repeatDelay: 1800,
+      });
+
+      this.tweens.add({
+        targets: [ringLeft, ringRight],
+        alpha: 0.9,
+        scaleX: 1.28,
+        scaleY: 1.28,
+        duration: 180,
+        ease: 'Sine.Out',
+        yoyo: true,
+        repeat: -1,
+        repeatDelay: 1750,
+      });
+    }
+
+    const resumePiece = furniture.find((piece) => piece.id === 'resume-stand');
+    if (resumePiece) {
+      const { glow, scroll, shadow, sparkle } = createFloatingResumeScroll(
+        this,
+        resumePiece.x,
+        resumePiece.y - 26,
+      );
+      this.add
+        .text(resumePiece.x, resumePiece.y + 16, 'Resume', {
+          color: '#f2e4c8',
+          fontFamily: 'monospace',
+          fontSize: '11px',
+        })
+        .setDepth(11.4)
+        .setOrigin(0.5);
+
+      this.tweens.add({
+        targets: scroll,
+        y: resumePiece.y - 38,
+        duration: 1700,
+        ease: 'Sine.InOut',
+        yoyo: true,
+        repeat: -1,
+      });
+
+      this.tweens.add({
+        targets: glow,
+        alpha: 0.2,
+        scaleX: 1.12,
+        scaleY: 1.08,
+        duration: 1500,
+        ease: 'Sine.InOut',
+        yoyo: true,
+        repeat: -1,
+      });
+
+      this.tweens.add({
+        targets: shadow,
+        alpha: 0.08,
+        scaleX: 0.82,
+        duration: 1700,
+        ease: 'Sine.InOut',
+        yoyo: true,
+        repeat: -1,
+      });
+
+      this.tweens.add({
+        targets: sparkle,
+        alpha: 0.3,
+        y: resumePiece.y - 56,
+        duration: 900,
+        ease: 'Sine.InOut',
+        yoyo: true,
+        repeat: -1,
+      });
+    }
   }
 
   private createPlayer() {

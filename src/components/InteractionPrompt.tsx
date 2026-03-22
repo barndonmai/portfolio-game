@@ -1,4 +1,4 @@
-import type { InteractableSummary } from '../game/gameEvents';
+import type { InteractableSummary } from "../game/gameEvents";
 
 interface InteractionPromptProps {
   interactable: InteractableSummary | null;
@@ -23,7 +23,7 @@ export function InteractionPrompt({
         {interactable.label}
       </p>
       <p className="mt-1 text-sm text-pub-cream">
-        {isTouchUi ? 'Press to interact' : interactable.prompt}
+        {isTouchUi ? "Tap here to open" : interactable.prompt}
       </p>
     </>
   );
