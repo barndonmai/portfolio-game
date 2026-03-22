@@ -98,7 +98,7 @@ export class VirtualJoystick {
     scene.scale.on(Phaser.Scale.Events.RESIZE, this.handleResize, this);
   }
 
-  static shouldEnable() {
+  static shouldEnable(scene?: Phaser.Scene) {
     if (typeof window === 'undefined') {
       return false;
     }
@@ -107,9 +107,18 @@ export class VirtualJoystick {
       'ontouchstart' in window ||
       navigator.maxTouchPoints > 0;
     const coarsePointer =
-      window.matchMedia?.('(pointer: coarse)').matches ?? false;
+      window.matchMedia?.('(pointer: coarse)').matches ??
+      false;
+    const anyCoarsePointer =
+      window.matchMedia?.('(any-pointer: coarse)').matches ??
+      false;
+    const noHover =
+      window.matchMedia?.('(hover: none)').matches ??
+      false;
+    const phaserTouch =
+      scene?.sys.game.device.input.touch ?? false;
 
-    return hasTouch || coarsePointer;
+    return hasTouch || coarsePointer || anyCoarsePointer || noHover || phaserTouch;
   }
 
   getVector() {

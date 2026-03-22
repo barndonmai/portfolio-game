@@ -319,7 +319,7 @@ export class PubScene extends Phaser.Scene {
   }
 
   private setupVirtualJoystick() {
-    if (!VirtualJoystick.shouldEnable()) {
+    if (!VirtualJoystick.shouldEnable(this)) {
       return;
     }
 
