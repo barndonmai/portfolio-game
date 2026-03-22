@@ -9,6 +9,7 @@ import { defaultPlayerCharacter } from '../characters/characterDefinitions';
 import { createCharacterAnimations } from '../characters/createCharacterAnimations';
 import type { Direction } from '../characters/directions';
 import type { CharacterDefinition } from '../characters/types';
+import { VirtualJoystick } from '../input/VirtualJoystick';
 import { updateCharacterAnimation } from '../characters/updateCharacterAnimation';
 import {
   furniture,
@@ -43,6 +44,7 @@ export class PubScene extends Phaser.Scene {
   private unsubscribeUiLock: (() => void) | null = null;
   private readonly playerCharacter: CharacterDefinition = defaultPlayerCharacter;
   private readonly movementIntent = new Phaser.Math.Vector2();
+  private virtualJoystick: VirtualJoystick | null = null;
   private playerFacing: Direction = 's';
   private currentAnimationKey: string | null = null;
 
@@ -89,12 +91,14 @@ export class PubScene extends Phaser.Scene {
     this.addInteractables();
     this.createPlayer();
     this.setupInput();
+    this.setupVirtualJoystick();
     this.subscribeToUiLock();
     this.setupCamera();
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, this.handleResize, this);
       this.unsubscribeUiLock?.();
+      this.virtualJoystick?.destroy();
       emitNearbyInteractable(null);
     });
   }
@@ -102,6 +106,7 @@ export class PubScene extends Phaser.Scene {
   update() {
     if (this.uiLocked) {
       this.movementIntent.set(0, 0);
+      this.virtualJoystick?.reset();
       this.player.body.setVelocity(0, 0);
       this.updatePlayerAnimation();
       this.syncPlayerVisuals();
@@ -313,6 +318,15 @@ export class PubScene extends Phaser.Scene {
     this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
   }
 
+  private setupVirtualJoystick() {
+    if (!VirtualJoystick.shouldEnable()) {
+      return;
+    }
+
+    this.input.addPointer(1);
+    this.virtualJoystick = new VirtualJoystick(this);
+  }
+
   private setupCamera() {
     const camera = this.cameras.main;
     camera.setBounds(0, 0, ROOM_WIDTH, ROOM_HEIGHT);
@@ -354,19 +368,29 @@ export class PubScene extends Phaser.Scene {
 
       if (locked) {
         this.movementIntent.set(0, 0);
+        this.virtualJoystick?.reset();
         this.player.body.setVelocity(0, 0);
       }
     });
   }
 
   private handleMovement() {
-    const isMovingLeft = this.cursors.left.isDown || this.wasd.A.isDown;
-    const isMovingRight = this.cursors.right.isDown || this.wasd.D.isDown;
-    const isMovingUp = this.cursors.up.isDown || this.wasd.W.isDown;
-    const isMovingDown = this.cursors.down.isDown || this.wasd.S.isDown;
+    const keyboardVector = new Phaser.Math.Vector2(
+      (this.cursors.left.isDown || this.wasd.A.isDown ? -1 : 0) +
+        (this.cursors.right.isDown || this.wasd.D.isDown ? 1 : 0),
+      (this.cursors.up.isDown || this.wasd.W.isDown ? -1 : 0) +
+        (this.cursors.down.isDown || this.wasd.S.isDown ? 1 : 0),
+    );
 
-    const horizontal = (isMovingLeft ? -1 : 0) + (isMovingRight ? 1 : 0);
-    const vertical = (isMovingUp ? -1 : 0) + (isMovingDown ? 1 : 0);
+    if (keyboardVector.lengthSq() > 1) {
+      keyboardVector.normalize();
+    }
+
+    const joystickVector = this.virtualJoystick?.getVector();
+    const horizontal =
+      keyboardVector.x + (joystickVector?.x ?? 0);
+    const vertical =
+      keyboardVector.y + (joystickVector?.y ?? 0);
 
     if (horizontal === 0 && vertical === 0) {
       this.movementIntent.set(0, 0);
@@ -374,7 +398,11 @@ export class PubScene extends Phaser.Scene {
       return;
     }
 
-    this.movementIntent.set(horizontal, vertical).normalize();
+    this.movementIntent.set(horizontal, vertical);
+
+    if (this.movementIntent.lengthSq() > 1) {
+      this.movementIntent.normalize();
+    }
 
     const targetVelocityX = this.movementIntent.x * PLAYER_SPEED;
     const targetVelocityY = this.movementIntent.y * PLAYER_SPEED;
