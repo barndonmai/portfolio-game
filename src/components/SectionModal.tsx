@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { portfolioSections } from '../content/portfolioSections';
 import type { PortfolioSectionId } from '../types/portfolio';
 
@@ -10,6 +11,24 @@ export function SectionModal({
   sectionId,
   onClose,
 }: SectionModalProps) {
+  useEffect(() => {
+    if (!sectionId) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [sectionId, onClose]);
+
   if (!sectionId) {
     return null;
   }
