@@ -51,7 +51,9 @@ export default function App() {
           navigator.maxTouchPoints > 0 ||
           pointerMedia.matches ||
           anyPointerMedia.matches ||
-          hoverMedia.matches,
+          hoverMedia.matches ||
+          window.innerWidth <= 900 ||
+          window.innerHeight <= 900,
       );
     };
 

@@ -1,15 +1,17 @@
 import Phaser from 'phaser';
 
-const DEFAULT_RADIUS = 34;
+const DEFAULT_RADIUS = 40;
 const DEFAULT_MARGIN_LEFT = 92;
-const DEFAULT_MARGIN_RIGHT = 92;
-const DEFAULT_MARGIN_BOTTOM = 92;
-const BASE_SIZE = 92;
-const INNER_BASE_SIZE = 62;
-const THUMB_SIZE = 30;
-const THUMB_INNER_SIZE = 16;
-const JOYSTICK_DEPTH = 60;
+const DEFAULT_MARGIN_RIGHT = 86;
+const DEFAULT_MARGIN_BOTTOM = 86;
+const BASE_SIZE = 108;
+const INNER_BASE_SIZE = 72;
+const THUMB_SIZE = 34;
+const THUMB_INNER_SIZE = 18;
+const JOYSTICK_DEPTH = 200;
 const ACTIVATION_PADDING = 18;
+const MOBILE_VIEWPORT_MAX_WIDTH = 900;
+const MOBILE_VIEWPORT_MAX_HEIGHT = 900;
 
 interface VirtualJoystickOptions {
   radius?: number;
@@ -42,29 +44,29 @@ export class VirtualJoystick {
     this.align = options.align ?? 'left';
 
     const baseShadow = scene.add
-      .rectangle(4, 4, BASE_SIZE, BASE_SIZE, 0x1b100d, 0.28)
+      .rectangle(4, 4, BASE_SIZE, BASE_SIZE, 0x1b100d, 0.34)
       .setStrokeStyle(0);
     const baseOuter = scene.add
-      .rectangle(0, 0, BASE_SIZE, BASE_SIZE, 0x2a1914, 0.44)
-      .setStrokeStyle(4, 0xd39c63, 0.55);
+      .rectangle(0, 0, BASE_SIZE, BASE_SIZE, 0x2a1914, 0.66)
+      .setStrokeStyle(4, 0xf0c27b, 0.82);
     const baseInner = scene.add
-      .rectangle(0, 0, INNER_BASE_SIZE, INNER_BASE_SIZE, 0x6b3a1d, 0.52)
-      .setStrokeStyle(2, 0xf0c27b, 0.45);
+      .rectangle(0, 0, INNER_BASE_SIZE, INNER_BASE_SIZE, 0x6b3a1d, 0.72)
+      .setStrokeStyle(2, 0xf2e4c8, 0.6);
     const horizontalGuide = scene.add
-      .rectangle(0, 0, INNER_BASE_SIZE - 14, 4, 0xf2e4c8, 0.18)
+      .rectangle(0, 0, INNER_BASE_SIZE - 14, 4, 0xf2e4c8, 0.24)
       .setStrokeStyle(0);
     const verticalGuide = scene.add
-      .rectangle(0, 0, 4, INNER_BASE_SIZE - 14, 0xf2e4c8, 0.18)
+      .rectangle(0, 0, 4, INNER_BASE_SIZE - 14, 0xf2e4c8, 0.24)
       .setStrokeStyle(0);
 
     const thumbShadow = scene.add
-      .rectangle(3, 3, THUMB_SIZE, THUMB_SIZE, 0x1b100d, 0.32)
+      .rectangle(3, 3, THUMB_SIZE, THUMB_SIZE, 0x1b100d, 0.36)
       .setStrokeStyle(0);
     const thumbOuter = scene.add
-      .rectangle(0, 0, THUMB_SIZE, THUMB_SIZE, 0xf2e4c8, 0.82)
-      .setStrokeStyle(3, 0x4b2d1f, 0.9);
+      .rectangle(0, 0, THUMB_SIZE, THUMB_SIZE, 0xf2e4c8, 0.94)
+      .setStrokeStyle(3, 0x4b2d1f, 1);
     const thumbInner = scene.add
-      .rectangle(0, 0, THUMB_INNER_SIZE, THUMB_INNER_SIZE, 0xd8b074, 0.95)
+      .rectangle(0, 0, THUMB_INNER_SIZE, THUMB_INNER_SIZE, 0xd8b074, 1)
       .setStrokeStyle(0);
 
     this.thumb = scene.add.container(0, 0, [
@@ -83,7 +85,8 @@ export class VirtualJoystick {
     ]);
     this.root.setDepth(JOYSTICK_DEPTH);
     this.root.setScrollFactor(0);
-    this.root.setAlpha(0.92);
+    this.root.setAlpha(1);
+    this.root.setVisible(true);
 
     this.hitZone = scene.add.zone(
       0,
@@ -95,6 +98,7 @@ export class VirtualJoystick {
     this.hitZone.setScrollFactor(0);
     this.hitZone.setDepth(JOYSTICK_DEPTH);
     this.hitZone.setInteractive();
+    this.hitZone.setVisible(false);
 
     this.layout(scene.scale.width, scene.scale.height);
 
@@ -124,8 +128,18 @@ export class VirtualJoystick {
       false;
     const phaserTouch =
       scene?.sys.game.device.input.touch ?? false;
+    const narrowViewport =
+      window.innerWidth <= MOBILE_VIEWPORT_MAX_WIDTH ||
+      window.innerHeight <= MOBILE_VIEWPORT_MAX_HEIGHT;
 
-    return hasTouch || coarsePointer || anyCoarsePointer || noHover || phaserTouch;
+    return (
+      hasTouch ||
+      coarsePointer ||
+      anyCoarsePointer ||
+      noHover ||
+      phaserTouch ||
+      narrowViewport
+    );
   }
 
   getVector() {
