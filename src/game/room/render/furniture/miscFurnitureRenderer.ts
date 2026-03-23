@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
+import { JUKEBOX_TEXTURE_KEY } from '../../config/textureKeys';
 import type { FurnitureDefinition } from '../../data/roomTypes';
 import { addContainer, addRect } from '../primitives';
+import { addFurnitureSprite } from './shared';
 
 export function drawColumn(scene: Phaser.Scene, piece: FurnitureDefinition) {
   addContainer(scene, piece.x, piece.y, [
@@ -12,14 +14,18 @@ export function drawColumn(scene: Phaser.Scene, piece: FurnitureDefinition) {
 }
 
 export function drawJukebox(scene: Phaser.Scene, piece: FurnitureDefinition) {
-  addContainer(scene, piece.x, piece.y, [
-    addRect(scene, 0, 8, piece.width + 10, piece.height + 10, 0x000000, 0.18),
-    addRect(scene, 0, 0, piece.width, piece.height, 0x8d4526),
-    addRect(scene, 0, -piece.height * 0.18, piece.width - 10, piece.height * 0.34, 0xc7733b),
-    addRect(scene, 0, -piece.height * 0.24, piece.width * 0.52, piece.height * 0.16, 0xf2d16d),
-    addRect(scene, 0, 10, piece.width * 0.62, piece.height * 0.22, 0x3f2418),
-    addRect(scene, 0, piece.height * 0.28, piece.width * 0.74, 12, 0xf0c27b),
-  ]);
+  if (!scene.textures.exists(JUKEBOX_TEXTURE_KEY)) {
+    return;
+  }
+
+  addFurnitureSprite(scene, JUKEBOX_TEXTURE_KEY, piece, {
+    yOffset: 14,
+    widthPadding: 28,
+    heightPadding: 42,
+    shadowScaleX: 0.76,
+    shadowScaleY: 0.22,
+    shadowAlpha: 0.16,
+  });
 }
 
 export function drawPhone(scene: Phaser.Scene, piece: FurnitureDefinition) {

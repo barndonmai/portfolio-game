@@ -6,3 +6,5 @@ export const BOOTH_TEXTURE_KEY = 'pub-booth-couch';
 export const BOOTH_ROTATED_180_TEXTURE_KEY = 'pub-booth-couch-rotated-180';
 export const RECT_TABLE_TEXTURE_KEY = 'pub-table-rect';
 export const ROUND_TABLE_TEXTURE_KEY = 'pub-table-round';
+export const MOLLYTEA_BAG_TEXTURE_KEY = 'mollytea-bag';
+export const JUKEBOX_TEXTURE_KEY = 'jukebox';

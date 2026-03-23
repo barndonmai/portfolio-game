@@ -7,6 +7,9 @@ import {
 } from '../config/roomConstants';
 import type { FurnitureDefinition } from './roomTypes';
 
+const BOOTH_ISLAND_BACK_OFFSET = 16;
+const NOOK_TABLE_CLEARANCE_OFFSET = 8;
+
 const nookFurniture: FurnitureDefinition[] = [
   {
     id: 'nook-booth-left',
@@ -21,7 +24,7 @@ const nookFurniture: FurnitureDefinition[] = [
   {
     id: 'nook-booth-top',
     x: 154,
-    y: 452,
+    y: 452 - NOOK_TABLE_CLEARANCE_OFFSET,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,
@@ -31,7 +34,7 @@ const nookFurniture: FurnitureDefinition[] = [
   {
     id: 'nook-booth-lower-curve',
     x: 154,
-    y: 640,
+    y: 640 + NOOK_TABLE_CLEARANCE_OFFSET,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,
@@ -62,7 +65,7 @@ const nookFurniture: FurnitureDefinition[] = [
   {
     id: 'nook-booth-bottom-top',
     x: 154,
-    y: 774,
+    y: 774 - NOOK_TABLE_CLEARANCE_OFFSET,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,
@@ -72,7 +75,7 @@ const nookFurniture: FurnitureDefinition[] = [
   {
     id: 'nook-booth-bottom-lower-curve',
     x: 154,
-    y: 962,
+    y: 962 + NOOK_TABLE_CLEARANCE_OFFSET,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,
@@ -239,7 +242,7 @@ const boothIslands: FurnitureDefinition[] = [
   {
     id: 'booth-island-a-top',
     x: 780,
-    y: 274,
+    y: 274 - BOOTH_ISLAND_BACK_OFFSET,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,
@@ -249,7 +252,7 @@ const boothIslands: FurnitureDefinition[] = [
   {
     id: 'booth-island-a-bottom',
     x: 780,
-    y: 430,
+    y: 430 + BOOTH_ISLAND_BACK_OFFSET,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,
@@ -270,7 +273,7 @@ const boothIslands: FurnitureDefinition[] = [
   {
     id: 'booth-island-b-top',
     x: 548,
-    y: 530,
+    y: 530 - BOOTH_ISLAND_BACK_OFFSET,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,
@@ -280,7 +283,7 @@ const boothIslands: FurnitureDefinition[] = [
   {
     id: 'booth-island-b-bottom',
     x: 548,
-    y: 712,
+    y: 712 + BOOTH_ISLAND_BACK_OFFSET,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,
@@ -301,7 +304,7 @@ const boothIslands: FurnitureDefinition[] = [
   {
     id: 'booth-island-c-top',
     x: 996,
-    y: 530,
+    y: 530 - BOOTH_ISLAND_BACK_OFFSET,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,
@@ -311,7 +314,7 @@ const boothIslands: FurnitureDefinition[] = [
   {
     id: 'booth-island-c-bottom',
     x: 996,
-    y: 712,
+    y: 712 + BOOTH_ISLAND_BACK_OFFSET,
     width: BOOTH_WIDTH,
     height: BOOTH_DEPTH,
     color: 0x7f2d25,

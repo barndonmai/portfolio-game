@@ -4,6 +4,8 @@ import { addContainer, addEllipse, addRect } from '../primitives';
 import type { AnimatedJukeboxParts } from './types';
 
 const LABEL_DEPTH = 11.4;
+const JUKEBOX_EFFECTS_Y_OFFSET = -21;
+const JUKEBOX_LABEL_Y_OFFSET = 46;
 
 export function createAnimatedJukebox(
   scene: Phaser.Scene,
@@ -67,14 +69,15 @@ export function addAnimatedJukeboxProp(
   y: number,
   labelText = 'Jukebox',
 ) {
+  const effectsAnchorY = y + JUKEBOX_EFFECTS_Y_OFFSET;
   const { glow, marquee, noteLeft, noteRight, sparkle } = createAnimatedJukebox(
     scene,
     x,
-    y,
+    effectsAnchorY,
   );
 
   scene.add
-    .text(x, y + 58, labelText, {
+    .text(x, y + JUKEBOX_LABEL_Y_OFFSET, labelText, {
       color: '#f2e4c8',
       fontFamily: 'monospace',
       fontSize: '11px',
@@ -95,7 +98,7 @@ export function addAnimatedJukeboxProp(
 
   scene.tweens.add({
     targets: marquee,
-    y: y - 22,
+    y: effectsAnchorY - 22,
     duration: 1000,
     ease: 'Sine.InOut',
     yoyo: true,
@@ -117,7 +120,7 @@ export function addAnimatedJukeboxProp(
   scene.tweens.add({
     targets: noteLeft,
     x: x - 40,
-    y: y - 32,
+    y: effectsAnchorY - 32,
     duration: 900,
     ease: 'Sine.Out',
     yoyo: true,
@@ -128,7 +131,7 @@ export function addAnimatedJukeboxProp(
   scene.tweens.add({
     targets: noteRight,
     x: x + 42,
-    y: y - 28,
+    y: effectsAnchorY - 28,
     duration: 980,
     ease: 'Sine.Out',
     yoyo: true,

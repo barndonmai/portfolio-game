@@ -4,6 +4,8 @@ import barCounterTopdownSprite from '../../assets/props/pub_bar_counter_topdown.
 import barStoolSprite from '../../assets/props/pub_bar_stool.png';
 import boothCouchSprite from '../../assets/props/pub_booth_couch.png';
 import boothCouchRotated180Sprite from '../../assets/props/pub_booth_couch_rotated_180.png';
+import jukeboxSprite from '../../assets/props/jukebox.png';
+import mollyteaBagSprite from '../../assets/props/mollytea_bag.png';
 import rectTableSprite from '../../assets/props/pub_table_rect.png';
 import roundTableSprite from '../../assets/props/pub_table_round.png';
 import floorTilesetSprite from '../../assets/tiles/pub_floor_tileset.png';
@@ -25,6 +27,8 @@ import {
   BOOTH_ROTATED_180_TEXTURE_KEY,
   BOOTH_TEXTURE_KEY,
   FLOOR_TEXTURE_KEY,
+  JUKEBOX_TEXTURE_KEY,
+  MOLLYTEA_BAG_TEXTURE_KEY,
   RECT_TABLE_TEXTURE_KEY,
   ROUND_TABLE_TEXTURE_KEY,
   STOOL_TEXTURE_KEY,
@@ -50,6 +54,7 @@ import {
   type InteractableDefinition,
   wallColliders,
 } from '../room/data';
+import { FURNITURE_DEPTH } from '../room/config/depth';
 
 const CAMERA_FOLLOW_LERP = 0.16;
 const ANIMATION_WALK_START_SPEED = 56;
@@ -59,6 +64,12 @@ const VISUAL_POSITION_SNAP = 1;
 const TOUCH_MOVE_ARRIVAL_RADIUS = 14;
 const FLOATING_CENTERPIECE_X = 780;
 const FLOATING_CENTERPIECE_Y = 548;
+const MOLLYTEA_BAG_DEPTH_OFFSET = 0.15;
+const MOLLYTEA_BAG_WIDTH = 44;
+const MOLLYTEA_BAG_HEIGHT = 66;
+const MOLLYTEA_BAG_X_OFFSET = 2;
+const MOLLYTEA_BAG_Y_OFFSET = -42;
+const MOLLYTEA_BAG_ANGLE = -10;
 type PlayerHitbox = Phaser.GameObjects.Rectangle & {
   body: Phaser.Physics.Arcade.Body;
 };
@@ -106,8 +117,10 @@ export class PubScene extends Phaser.Scene {
     this.load.image(STOOL_TEXTURE_KEY, barStoolSprite);
     this.load.image(BOOTH_TEXTURE_KEY, boothCouchSprite);
     this.load.image(BOOTH_ROTATED_180_TEXTURE_KEY, boothCouchRotated180Sprite);
+    this.load.image(JUKEBOX_TEXTURE_KEY, jukeboxSprite);
     this.load.image(RECT_TABLE_TEXTURE_KEY, rectTableSprite);
     this.load.image(ROUND_TABLE_TEXTURE_KEY, roundTableSprite);
+    this.load.image(MOLLYTEA_BAG_TEXTURE_KEY, mollyteaBagSprite);
 
     if (this.playerCharacter.sheet.kind === 'grid') {
       this.load.spritesheet(
@@ -143,6 +156,7 @@ export class PubScene extends Phaser.Scene {
     createCharacterAnimations(this, this.playerCharacter);
     this.drawRoomShell();
     this.addFurniture();
+    this.addTabletopProps();
     this.addDecor();
     this.addInteractables();
     this.addFloatingCenterpiece();
@@ -224,6 +238,48 @@ export class PubScene extends Phaser.Scene {
 
   private addDecor() {
     drawDecor(this, ROOM_WIDTH, ROOM_HEIGHT);
+  }
+
+  private addTabletopProps() {
+    const middleTable = furniture
+      .filter((piece) => piece.id.includes('table'))
+      .reduce<(typeof furniture)[number] | null>((closestTable, table) => {
+        const tableDistanceFromCenter = Phaser.Math.Distance.Squared(
+          table.x,
+          table.y,
+          ROOM_WIDTH / 2,
+          ROOM_HEIGHT / 2,
+        );
+
+        if (!closestTable) {
+          return table;
+        }
+
+        const closestTableDistanceFromCenter = Phaser.Math.Distance.Squared(
+          closestTable.x,
+          closestTable.y,
+          ROOM_WIDTH / 2,
+          ROOM_HEIGHT / 2,
+        );
+
+        return tableDistanceFromCenter < closestTableDistanceFromCenter
+          ? table
+          : closestTable;
+      }, null);
+
+    if (!middleTable) {
+      return;
+    }
+
+    this.add
+      .image(
+        middleTable.x + MOLLYTEA_BAG_X_OFFSET,
+        middleTable.y + MOLLYTEA_BAG_Y_OFFSET,
+        MOLLYTEA_BAG_TEXTURE_KEY,
+      )
+      .setDisplaySize(MOLLYTEA_BAG_WIDTH, MOLLYTEA_BAG_HEIGHT)
+      .setAngle(MOLLYTEA_BAG_ANGLE)
+      .setDepth(FURNITURE_DEPTH + MOLLYTEA_BAG_DEPTH_OFFSET);
   }
 
   private addInteractables() {
